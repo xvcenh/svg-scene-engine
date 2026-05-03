@@ -36,6 +36,7 @@ const Game = {
     } else {
       // Load DM state
       DM.load();
+      Quests.load();
       UI.hideLoading();
       UI.renderCharacterSheet();
       UI.renderInventory();
