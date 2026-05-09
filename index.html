@@ -3,83 +3,330 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Tavern — 龙与地下城 AI小镇</title>
-  <meta name="description" content="An open-source D&D-style AI town. Explore a fantasy world with an AI Dungeon Master. Roll dice, fight monsters, go on quests.">
-  <meta name="theme-color" content="#1a0a2e">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏰</text></svg>">
-  <link rel="stylesheet" href="css/style.css">
-  
-  <!-- Open Graph -->
-  <meta property="og:title" content="AI Tavern — AI驱动的D&D幻想小镇">
-  <meta property="og:description" content="一个开源AI Dungeon Master主持的幻想小镇。和有个性的NPC交谈，掷骰决定命运，探索无限可能。">
-  <meta property="og:type" content="website">
+  <title>AI Tavern v2.0 — AI 互动叙事游戏创作工具</title>
+  <link rel="stylesheet" href="engine/css/engine.css">
 </head>
 <body>
 
-<!-- Loading Screen -->
-<div id="loading-screen">
-  <div class="loading-spinner"></div>
-  <h1>🏰 AI 小镇</h1>
-  <p>AI Dungeon Master 正在准备你的冒险...</p>
-</div>
+  <!-- ===== TITLE SCREEN ===== -->
+  <div id="title-screen">
+    <div class="title-logo">⚔ AI TAVERN</div>
+    <div class="title-subtitle">AI 互动叙事游戏创作工具 v2.0</div>
+    <div class="title-buttons">
+      <button class="title-btn primary" onclick="selectMode('game')">进入游戏</button>
+      <button class="title-btn" onclick="selectMode('creator')">创作模式</button>
+    </div>
+  </div>
 
-<!-- Main App -->
-<div id="app" style="display:none">
-  
-  <!-- Game View -->
-  <div id="game-view">
-    <canvas id="game-canvas"></canvas>
-    <div id="game-overlay">
-      <div id="daynight-indicator">☀️ 白天 12:00</div>
-      <div id="location-label">🌿 旷野</div>
+  <!-- ===== MAIN APP ===== -->
+  <div id="app">
+    <!-- Header -->
+    <div id="header">
+      <span class="logo">⚔ AI TAVERN</span>
+      <span class="mode-tag" id="mode-tag">游戏模式</span>
+      <button class="nav-btn" id="btn-game" onclick="switchView('game')">游戏</button>
+      <button class="nav-btn" id="btn-creator" onclick="switchView('creator')">创作</button>
+      <button class="nav-btn" id="btn-save" onclick="Engine.SaveSystem.save()">保存</button>
+      <button class="nav-btn" id="btn-load" onclick="Engine.SaveSystem.load()">读取</button>
     </div>
-  </div>
-  
-  <!-- Side Panel -->
-  <div id="side-panel">
-    <div id="side-tabs">
-      <button class="active" data-tab="character">👤 角色</button>
-      <button data-tab="inventory">🎒 物品</button>
-      <button data-tab="quests">📜 任务</button>
-    </div>
-    <div id="side-content">
-      <div class="tab-content active" id="tab-character"></div>
-      <div class="tab-content" id="tab-inventory"></div>
-      <div class="tab-content" id="tab-quests"></div>
-    </div>
-  </div>
-  
-  <!-- Bottom Panel -->
-  <div id="bottom-panel">
-    <div id="dm-narration">
-      <div class="narr-entry dm">
-        <div class="narr-speaker">DUNGEON MASTER</div>
-        <div>欢迎来到月影镇。按下 Esc 打开菜单开始配置。</div>
+
+    <!-- Body -->
+    <div id="body">
+
+      <!-- Sidebar: Character Sheet -->
+      <div id="sidebar">
+        <div class="char-header">
+          <div class="char-avatar" id="char-avatar">🧙</div>
+          <div class="char-name" id="char-name">旅行者</div>
+          <div class="char-class" id="char-class">冒险者</div>
+        </div>
+
+        <div class="stat-section">
+          <h3>生命值</h3>
+          <div class="stat-row">
+            <span class="stat-label">HP</span>
+            <span class="stat-value red" id="hp-text">100 / 100</span>
+          </div>
+          <div class="hp-bar"><div class="hp-bar-fill" id="hp-bar" style="width:100%"></div></div>
+        </div>
+
+        <div class="stat-section">
+          <h3>魔力</h3>
+          <div class="stat-row">
+            <span class="stat-label">MP</span>
+            <span class="stat-value" id="mp-text" style="color:var(--accent-blue)">50 / 50</span>
+          </div>
+          <div class="mp-bar"><div class="mp-bar-fill" id="mp-bar" style="width:100%"></div></div>
+        </div>
+
+        <div class="stat-section">
+          <h3>属性</h3>
+          <div class="stat-row"><span class="stat-label">力量</span><span class="stat-value" id="stat-str">10</span></div>
+          <div class="stat-row"><span class="stat-label">敏捷</span><span class="stat-value" id="stat-dex">10</span></div>
+          <div class="stat-row"><span class="stat-label">智力</span><span class="stat-value" id="stat-int">10</span></div>
+          <div class="stat-row"><span class="stat-label">感知</span><span class="stat-value" id="stat-wis">10</span></div>
+          <div class="stat-row"><span class="stat-label">体质</span><span class="stat-value" id="stat-con">10</span></div>
+          <div class="stat-row"><span class="stat-label">魅力</span><span class="stat-value" id="stat-cha">10</span></div>
+        </div>
+
+        <div class="stat-section">
+          <h3>状态</h3>
+          <div class="stat-row"><span class="stat-label">等级</span><span class="stat-value gold" id="stat-level">1</span></div>
+          <div class="stat-row"><span class="stat-label">经验</span><span class="stat-value" id="stat-exp">0 / 100</span></div>
+          <div class="stat-row"><span class="stat-label">金币</span><span class="stat-value gold" id="stat-gold">0</span></div>
+        </div>
+
+        <div class="stat-section">
+          <h3>物品栏</h3>
+          <ul class="inventory-list" id="inventory-list">
+            <li><span class="item-name">旅行者之剑</span><span class="item-qty">×1</span></li>
+            <li><span class="item-name">治疗药水</span><span class="item-qty">×3</span></li>
+            <li><span class="item-name">火把</span><span class="item-qty">×5</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Center: Map + Narration + Input -->
+      <div id="center">
+        <!-- Game View -->
+        <div id="game-view">
+          <div id="map-container">
+            <canvas id="map-canvas" width="768" height="768"></canvas>
+          </div>
+          <div id="narration"></div>
+          <div id="input-area">
+            <input type="text" id="player-input" placeholder="输入你的行动..." autocomplete="off">
+            <button id="send-btn" onclick="handleSend()">发送</button>
+          </div>
+          <div id="action-bar">
+            <button class="action-btn" onclick="handleAction('talk')">💬 对话</button>
+            <button class="action-btn" onclick="handleAction('search')">🔍 搜索</button>
+            <button class="action-btn" onclick="handleAction('rest')">🛏 休息</button>
+            <button class="action-btn" onclick="handleAction('dice')">🎲 骰子</button>
+            <button class="action-btn" onclick="handleAction('inventory')">🎒 物品</button>
+            <button class="action-btn" onclick="handleAction('map')">🗺 地图</button>
+          </div>
+        </div>
+
+        <!-- Creator View (hidden by default) -->
+        <div id="creator-view">
+          <div class="creator-section">
+            <h2>🌍 世界观设定</h2>
+            <div class="creator-form">
+              <label>世界名称</label>
+              <input type="text" id="world-name" placeholder="例：艾恩多尔大陆">
+              <label>世界背景描述</label>
+              <textarea id="world-desc" placeholder="描述这个世界的历史、地理、种族..."></textarea>
+            </div>
+          </div>
+          <div class="creator-section">
+            <h2>🎭 角色创建</h2>
+            <div class="creator-form">
+              <label>NPC 名称</label>
+              <input type="text" id="npc-name" placeholder="NPC 名字">
+              <label>角色类型</label>
+              <select id="npc-type">
+                <option value="ally">友方</option>
+                <option value="neutral">中立</option>
+                <option value="enemy">敌对</option>
+                <option value="merchant">商人</option>
+                <option value="quest">任务给予者</option>
+              </select>
+              <label>角色描述</label>
+              <textarea id="npc-desc" placeholder="外貌、性格、背景故事..."></textarea>
+            </div>
+          </div>
+          <div class="creator-section">
+            <h2>📖 剧情编辑</h2>
+            <div class="creator-form">
+              <label>场景名称</label>
+              <input type="text" id="scene-name" placeholder="例：酒馆大厅">
+              <label>场景描述</label>
+              <textarea id="scene-desc" placeholder="玩家进入时看到的描述..."></textarea>
+              <label>触发事件（JSON）</label>
+              <textarea id="scene-events" placeholder='[{"trigger":"enter","action":"npc_speak","npc":"酒馆老板","text":"欢迎，旅行者！"}]'></textarea>
+            </div>
+          </div>
+          <div class="creator-section">
+            <h2>⚔️ 战斗配置</h2>
+            <div class="creator-form">
+              <label>敌人名称</label>
+              <input type="text" id="enemy-name" placeholder="例：哥布林">
+              <label>敌人数据（JSON）</label>
+              <textarea id="enemy-stats" placeholder='{"hp":30,"atk":8,"def":3,"exp":20,"gold":5}'></textarea>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div id="input-area">
-      <button id="btn-talk" class="action-btn" title="交谈">💬</button>
-      <button id="btn-search" class="action-btn" title="搜索">🔍</button>
-      <button id="btn-rest" class="action-btn" title="休息">💤</button>
-      <button id="btn-dice" class="action-btn" title="掷骰">🎲</button>
-      <input id="player-input" type="text" placeholder="输入你想做的事情... (Enter发送)" autocomplete="off">
-      <button id="btn-send">发送</button>
+  </div>
+
+  <!-- Combat Overlay -->
+  <div id="combat-overlay">
+    <div class="combat-panel">
+      <h2>⚔ 战斗！</h2>
+      <div class="combat-enemies" id="combat-enemies"></div>
+      <div class="combat-actions">
+        <button class="combat-action-btn" onclick="Engine.Combat.playerAction('attack')">攻击</button>
+        <button class="combat-action-btn" onclick="Engine.Combat.playerAction('skill')" style="background:var(--accent-blue)">技能</button>
+        <button class="combat-action-btn" onclick="Engine.Combat.playerAction('defend')" style="background:var(--text-muted)">防御</button>
+        <button class="combat-action-btn" onclick="Engine.Combat.playerAction('flee')" style="background:var(--bg-tertiary);color:var(--text-dim);border:1px solid var(--border)">逃跑</button>
+      </div>
     </div>
   </div>
-  
-</div>
 
-<!-- Scripts -->
-<script src="js/config.js"></script>
-<script src="js/dice.js"></script>
-<script src="js/characters.js"></script>
-<script src="js/player.js"></script>
-<script src="js/map.js"></script>
-<script src="js/dm.js"></script>
-<script src="js/quests.js"></script>
-<script src="js/combat.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
 
+  <!-- ===== Shared Modules ===== -->
+  <script src="shared/js/event-bus.js"></script>
+  <script src="shared/js/llm-client.js"></script>
+  <script src="shared/js/utils.js"></script>
+
+  <!-- ===== Engine Modules ===== -->
+  <script src="engine/js/core.js"></script>
+  <script src="engine/js/dice.js"></script>
+  <script src="engine/js/renderer.js"></script>
+  <script src="engine/js/scene-manager.js"></script>
+  <script src="engine/js/narrative.js"></script>
+  <script src="engine/js/character-ai.js"></script>
+  <script src="engine/js/combat.js"></script>
+  <script src="engine/js/save-system.js"></script>
+
+  <!-- ===== Bootstrap ===== -->
+  <script>
+    // Mode selection from title screen
+    function selectMode(mode) {
+      document.getElementById('title-screen').classList.add('hidden');
+      document.getElementById('app').classList.add('visible');
+      if (mode === 'creator') {
+        switchView('creator');
+      } else {
+        switchView('game');
+      }
+      if (typeof Engine !== 'undefined' && Engine.init) {
+        Engine.init(mode);
+      }
+    }
+
+    // Switch between game and creator views
+    function switchView(view) {
+      const gameView = document.getElementById('game-view');
+      const creatorView = document.getElementById('creator-view');
+      const sidebar = document.getElementById('sidebar');
+      const btnGame = document.getElementById('btn-game');
+      const btnCreator = document.getElementById('btn-creator');
+      const modeTag = document.getElementById('mode-tag');
+
+      if (view === 'creator') {
+        gameView.style.display = 'none';
+        creatorView.classList.add('visible');
+        sidebar.classList.add('hidden');
+        btnGame.classList.remove('active');
+        btnCreator.classList.add('active');
+        modeTag.textContent = '创作模式';
+      } else {
+        gameView.style.display = 'flex';
+        gameView.style.flexDirection = 'column';
+        gameView.style.flex = '1';
+        gameView.style.overflow = 'hidden';
+        creatorView.classList.remove('visible');
+        sidebar.classList.remove('hidden');
+        btnGame.classList.add('active');
+        btnCreator.classList.remove('active');
+        modeTag.textContent = '游戏模式';
+      }
+    }
+
+    // Player input handling
+    function handleSend() {
+      const input = document.getElementById('player-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      // Emit via EventBus if available, otherwise add directly
+      if (typeof EventBus !== 'undefined') {
+        EventBus.emit('player:action', { text });
+      }
+      addMessage('player', '你', text);
+    }
+
+    // Action buttons
+    function handleAction(action) {
+      const labels = { talk: '对话', search: '搜索四周', rest: '休息恢复', dice: '掷骰子', inventory: '查看物品', map: '展开地图' };
+      const input = document.getElementById('player-input');
+      input.value = labels[action] || action;
+      input.focus();
+    }
+
+    // Narration message helper
+    function addMessage(type, speaker, text) {
+      const panel = document.getElementById('narration');
+      const div = document.createElement('div');
+      div.className = 'msg msg-' + type;
+
+      let html = '';
+      if (type === 'npc' || type === 'player') {
+        html += '<span class="speaker">' + speaker + '</span>';
+      }
+      if (type === 'combat') {
+        html += '<span class="combat-icon">⚔</span>';
+      }
+      html += text;
+      div.innerHTML = html;
+
+      panel.appendChild(div);
+      panel.scrollTop = panel.scrollHeight;
+    }
+
+    // Toast notification helper
+    function showToast(message, type) {
+      type = type || 'info';
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('fade-out');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // Character sheet update helper
+    function updateCharSheet(data) {
+      if (data.name) document.getElementById('char-name').textContent = data.name;
+      if (data.cls) document.getElementById('char-class').textContent = data.cls;
+      if (data.avatar) document.getElementById('char-avatar').textContent = data.avatar;
+      if (data.hp !== undefined && data.maxHp !== undefined) {
+        document.getElementById('hp-text').textContent = data.hp + ' / ' + data.maxHp;
+        document.getElementById('hp-bar').style.width = (data.hp / data.maxHp * 100) + '%';
+      }
+      if (data.mp !== undefined && data.maxMp !== undefined) {
+        document.getElementById('mp-text').textContent = data.mp + ' / ' + data.maxMp;
+        document.getElementById('mp-bar').style.width = (data.mp / data.maxMp * 100) + '%';
+      }
+      if (data.str !== undefined) document.getElementById('stat-str').textContent = data.str;
+      if (data.dex !== undefined) document.getElementById('stat-dex').textContent = data.dex;
+      if (data.int !== undefined) document.getElementById('stat-int').textContent = data.int;
+      if (data.wis !== undefined) document.getElementById('stat-wis').textContent = data.wis;
+      if (data.con !== undefined) document.getElementById('stat-con').textContent = data.con;
+      if (data.cha !== undefined) document.getElementById('stat-cha').textContent = data.cha;
+      if (data.level !== undefined) document.getElementById('stat-level').textContent = data.level;
+      if (data.exp !== undefined) document.getElementById('stat-exp').textContent = data.exp;
+      if (data.gold !== undefined) document.getElementById('stat-gold').textContent = data.gold;
+    }
+
+    // Enter key to send
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('player-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSend();
+        }
+      });
+    });
+  </script>
 </body>
 </html>

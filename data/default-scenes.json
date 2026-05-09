@@ -1,0 +1,161 @@
+[
+  {
+    "id": "tavern-intro",
+    "name": "酒馆初遇",
+    "background": "tavern-interior",
+    "characters": ["ella", "felynn"],
+    "objects": ["table", "torch", "bar_counter", "mug"],
+    "onEnter": "你推开月影酒馆沉重的木门，温暖的火光和麦酒的香气扑面而来。酒馆老板娘艾拉正擦拭着吧台，角落里传来悠扬的鲁特琴声——那是吟游诗人菲林在弹唱。",
+    "svgRef": "scenes/tavern-interior.svg",
+    "timeOfDay": "any",
+    "mood": "warm",
+    "events": [
+      { "trigger": "talk_to", "target": "ella", "action": "ella_greet" },
+      { "trigger": "talk_to", "target": "felynn", "action": "felynn_song" },
+      { "trigger": "examine", "target": "bar_counter", "action": "notice_secret_door" }
+    ]
+  },
+  {
+    "id": "town-square-day",
+    "name": "小镇广场（白天）",
+    "background": "town-square-day",
+    "characters": ["morris"],
+    "objects": ["fountain", "cobblestones", "pigeons", "notice_board"],
+    "onEnter": "阳光洒在鹅卵石广场上，古老的喷泉发出潺潺水声。镇长莫里斯正在广场中央与几位居民交谈，看到你后露出了温和的微笑。公告板上贴着几张告示。",
+    "svgRef": "scenes/town-square-day.svg",
+    "timeOfDay": "day",
+    "mood": "bustling",
+    "events": [
+      { "trigger": "talk_to", "target": "morris", "action": "morris_welcome" },
+      { "trigger": "examine", "target": "notice_board", "action": "read_notices" },
+      { "trigger": "examine", "target": "fountain", "action": "see_inscription" }
+    ]
+  },
+  {
+    "id": "town-square-night",
+    "name": "小镇广场（夜晚）",
+    "background": "town-square-night",
+    "characters": ["stranger"],
+    "objects": ["fountain", "flickering_lantern", "shadows"],
+    "onEnter": "月光下的广场显得格外寂静，只有喷泉的水声和远处偶尔传来的狗吠。路灯忽明忽暗，你瞥见一个黑影闪过巷口...",
+    "svgRef": "scenes/town-square-night.svg",
+    "timeOfDay": "night",
+    "mood": "eerie",
+    "events": [
+      { "trigger": "approach", "target": "stranger", "action": "stranger_vanishes" },
+      { "trigger": "examine", "target": "shadows", "action": "hear_whispers" }
+    ]
+  },
+  {
+    "id": "smithy-morning",
+    "name": "铁匠铺清晨",
+    "background": "smithy",
+    "characters": ["bruno"],
+    "objects": ["anvil", "forge", "weapons_rack", "bellows"],
+    "onEnter": "叮叮当当的打铁声打破了清晨的宁静。矮人铁匠布鲁诺正挥舞着他传承七代的战锤，火星四溅。一把半成品的长剑在铁砧上冒着热气。",
+    "svgRef": "scenes/smithy-morning.svg",
+    "timeOfDay": "day",
+    "mood": "industrious",
+    "events": [
+      { "trigger": "talk_to", "target": "bruno", "action": "bruno_greet" },
+      { "trigger": "examine", "target": "weapons_rack", "action": "browse_weapons" },
+      { "trigger": "examine", "target": "forge", "action": "see_enchanted_flames" }
+    ]
+  },
+  {
+    "id": "mage-tower-night",
+    "name": "星语塔之夜",
+    "background": "mage-tower",
+    "characters": ["zephyr"],
+    "objects": ["telescope", "spell_books", "potion_bottles", "star_chart"],
+    "onEnter": "塔顶的房间里满是星图和魔法卷轴。泽菲尔正用他那架奇怪的望远镜观测星空，嘴里喃喃自语着听不懂的咒语。空气中弥漫着硫磺和月桂叶的味道。",
+    "svgRef": "scenes/mage-tower-night.svg",
+    "timeOfDay": "night",
+    "mood": "mystical",
+    "events": [
+      { "trigger": "talk_to", "target": "zephyr", "action": "zephyr_madness" },
+      { "trigger": "examine", "target": "star_chart", "action": "discover_portal_hint" },
+      { "trigger": "examine", "target": "spell_books", "action": "read_forbidden_knowledge" }
+    ]
+  },
+  {
+    "id": "forest-entrance",
+    "name": "暗语森林入口",
+    "background": "forest",
+    "characters": ["carl"],
+    "objects": ["path", "mushrooms", "owl", "wolf_silhouette"],
+    "onEnter": "你站在暗语森林的边缘。古树的枝干在风中摇曳，发出如同低语般的声音。一个沉默的身影站在阴影中——游侠卡尔和他的灰狼\"暗影\"正注视着你。",
+    "svgRef": "scenes/forest-entrance.svg",
+    "timeOfDay": "day",
+    "mood": "tense",
+    "events": [
+      { "trigger": "talk_to", "target": "carl", "action": "carl_silence" },
+      { "trigger": "examine", "target": "mushrooms", "action": "identify_mushrooms" },
+      { "trigger": "direction", "target": "deeper", "action": "enter_forest_deep" }
+    ]
+  },
+  {
+    "id": "herb-shop-afternoon",
+    "name": "草药店午后",
+    "background": "herb-shop",
+    "characters": ["greta"],
+    "objects": ["herb_shelves", "mortar", "dried_plants", "cauldron"],
+    "onEnter": "推开吱呀作响的木门，一股浓郁的草药气息扑面而来。格蕾塔婆婆正坐在一张木桌后，用研钵捣碎某种紫色的草药。她抬头看了你一眼，眼中闪过一丝精明的光芒。",
+    "svgRef": "scenes/herb-shop-afternoon.svg",
+    "timeOfDay": "day",
+    "mood": "cozy",
+    "events": [
+      { "trigger": "talk_to", "target": "greta", "action": "greta_palm_reading" },
+      { "trigger": "examine", "target": "herb_shelves", "action": "browse_herbs" },
+      { "trigger": "examine", "target": "cauldron", "action": "see_brewing" }
+    ]
+  },
+  {
+    "id": "market-morning",
+    "name": "集市繁忙时",
+    "background": "market",
+    "characters": ["ella", "greta"],
+    "objects": ["stalls", "produce", "crowd", "signs"],
+    "onEnter": "集市上人声鼎沸，各种摊位叫卖着新鲜蔬果、手工艺品和魔法道具。你看到艾拉在采购食材，格蕾塔婆婆则在她的摊位前摆放药草。",
+    "svgRef": "scenes/market-morning.svg",
+    "timeOfDay": "day",
+    "mood": "vibrant",
+    "events": [
+      { "trigger": "talk_to", "target": "ella", "action": "ella_gossip" },
+      { "trigger": "talk_to", "target": "greta", "action": "greta_sell_herbs" },
+      { "trigger": "examine", "target": "stalls", "action": "discover_strange_item" }
+    ]
+  },
+  {
+    "id": "guild-hall-busy",
+    "name": "工会大厅",
+    "background": "guild-hall",
+    "characters": ["lina"],
+    "objects": ["quest_board", "trophies", "weapons_display", "map_table"],
+    "onEnter": "冒险者工会大厅里挂满了怪物头颅标本和历届冒险者的画像。年轻的工会长莉娜正在任务板前整理委托单，看到你进来，眼睛一亮。",
+    "svgRef": "scenes/guild-hall-busy.svg",
+    "timeOfDay": "day",
+    "mood": "adventurous",
+    "events": [
+      { "trigger": "talk_to", "target": "lina", "action": "lina_recruit" },
+      { "trigger": "examine", "target": "quest_board", "action": "browse_quests" },
+      { "trigger": "examine", "target": "map_table", "action": "see_forest_map" }
+    ]
+  },
+  {
+    "id": "grove-moonlight",
+    "name": "月光林地",
+    "background": "grove",
+    "characters": ["stranger"],
+    "objects": ["moonlight_pool", "ancient_tree", "fireflies", "stone_circle"],
+    "onEnter": "月光透过古树的枝叶，在林间空地上投下斑驳的光影。这里弥漫着一种不可思议的魔力。你隐约看到一个神秘的身影站在石环中央，但当你眨眼时，它似乎又消失了...",
+    "svgRef": "scenes/grove-moonlight.svg",
+    "timeOfDay": "night",
+    "mood": "magical",
+    "events": [
+      { "trigger": "approach", "target": "stranger", "action": "stranger_riddle" },
+      { "trigger": "examine", "target": "stone_circle", "action": "activate_stones" },
+      { "trigger": "examine", "target": "moonlight_pool", "action": "see_vision" }
+    ]
+  }
+]
