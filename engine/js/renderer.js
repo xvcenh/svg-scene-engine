@@ -1,619 +1,398 @@
-// SVG Scene Engine - SVG Renderer
-// Renders scenes by compositing SVG asset layers
-// Enhanced: stateful characters, walking animations, reactions, layer ordering, auto-fit viewBox
+// SVG Scene Engine - Emoji Renderer
+// Renders scenes using emoji compositions on a 2D grid
+// Replaces SVG renderer with zero-dependency emoji-based rendering
 
 const SVGRenderer = {
   container: null,
-  svgRoot: null,          // The root <svg> element for auto-fit viewBox
-  assets: {},             // id -> svg string
-  assetMeta: {},          // id -> { layer, tags, origin }
+  assets: {},
+  assetMeta: {},
   currentScene: null,
   loadedCount: 0,
-  characterStates: {},    // assetId -> current state string (e.g. 'idle','surprised')
-  _animationTimers: {},   // assetId -> setTimeout id for reaction cleanup
+  characterStates: {},
+  _animationTimers: {},
   _layerOrder: ['scene-background', 'scene-objects', 'scene-characters', 'scene-effects'],
+
+  // ── Emoji Asset Registry ──────────────────────────────────────
+  // All 37 "assets" mapped to emoji + styling
+
+  EMOJI_MAP: {
+    // Backgrounds (rendered as large emoji + gradient bg)
+    'bg-forest-day':     { emoji: '🌳', gradient: ['#1a4a1a','#2d5a1e','#87ceeb'], label: '森林·白天' },
+    'bg-forest-night':   { emoji: '🌲', gradient: ['#0a1a0a','#1a2a1a','#1a1a3a'], label: '森林·夜晚' },
+    'bg-tavern-interior':{ emoji: '🍺', gradient: ['#3a2010','#5a3020','#2a1508'], label: '酒馆内部' },
+    'bg-crossroad':      { emoji: '🛤️', gradient: ['#3a3a2a','#5a5a3a','#8a8a6a'], label: '十字路口' },
+    'bg-town-square':    { emoji: '🏛️', gradient: ['#4a4a5a','#6a6a7a','#8a8a9a'], label: '小镇广场' },
+    'bg-cave-entrance':  { emoji: '🕳️', gradient: ['#1a1a1a','#2a2a2a','#3a3a3a'], label: '洞穴入口' },
+    'bg-market':         { emoji: '🏪', gradient: ['#5a4a2a','#7a6a3a','#9a8a5a'], label: '集市' },
+    'bg-castle-gate':    { emoji: '🏰', gradient: ['#3a3a4a','#5a5a6a','#7a7a8a'], label: '城堡大门' },
+    'bg-castle':         { emoji: '🏯', gradient: ['#2a2a3a','#4a4a5a','#6a6a7a'], label: '城堡' },
+    'bg-cave':           { emoji: '⛰️', gradient: ['#0a0a0a','#1a1a1a','#2a2a2a'], label: '洞穴' },
+    'bg-forest':         { emoji: '🌿', gradient: ['#1a3a1a','#2a4a2a','#3a5a3a'], label: '森林' },
+    'bg-mountain':       { emoji: '🏔️', gradient: ['#4a4a5a','#7a7a8a','#b0b0c0'], label: '山峰' },
+    'bg-river':          { emoji: '🌊', gradient: ['#1a3a5a','#2a5a8a','#4a8ab0'], label: '河边' },
+    'bg-tavern':         { emoji: '🍻', gradient: ['#4a2a10','#6a3a18','#8a5a28'], label: '酒馆' },
+    'bg-village':        { emoji: '🏘️', gradient: ['#3a4a2a','#5a6a3a','#8a9a5a'], label: '村庄' },
+
+    // Characters
+    'warrior-idle':  { emoji: '⚔️', label: '战士', states: { idle:'⚔️', fighting:'🗡️', surprised:'😵' } },
+    'warrior':       { emoji: '🗡️', label: '战士', states: { idle:'🗡️', fighting:'⚔️', surprised:'😵' } },
+    'mage-idle':     { emoji: '🧙', label: '法师', states: { idle:'🧙', casting:'🔮', surprised:'😲' } },
+    'mage':          { emoji: '🔮', label: '法师', states: { idle:'🔮', casting:'✨', surprised:'😲' } },
+    'npc-merchant':  { emoji: '🧛', label: '商人', states: { idle:'🧛', surprised:'😱', drinking:'🍺' } },
+    'merchant':      { emoji: '💰', label: '商人', states: { idle:'💰', surprised:'😱', drinking:'🍺' } },
+    'npc-guard':     { emoji: '💂', label: '卫兵', states: { idle:'💂', fighting:'🛡️', surprised:'😨' } },
+    'guard':         { emoji: '🛡️', label: '守卫', states: { idle:'🛡️', fighting:'⚔️', surprised:'😨' } },
+    'animal-sheep':  { emoji: '🐑', label: '绵羊', states: { idle:'🐑', surprised:'🐏', eating:'🐑' } },
+    'animal-horse':  { emoji: '🐴', label: '马', states: { idle:'🐴', fighting:'🦄' } },
+    'bard':          { emoji: '🎵', label: '吟游诗人', states: { idle:'🎵', drinking:'🎶', surprised:'😲' } },
+    'healer':        { emoji: '💉', label: '治疗师', states: { idle:'💉', casting:'✨', surprised:'😨' } },
+    'rogue':         { emoji: '🥷', label: '盗贼', states: { idle:'🥷', fighting:'🗡️', surprised:'😰' } },
+    'villager':      { emoji: '🧑', label: '村民', states: { idle:'🧑', surprised:'😨', eating:'😋' } },
+
+    // Objects
+    'table':   { emoji: '🪑', label: '桌子' },
+    'chest':   { emoji: '📦', label: '宝箱' },
+    'torch':   { emoji: '🔦', label: '火把' },
+    'sword':   { emoji: '⚔️', label: '剑' },
+    'potion':  { emoji: '🧪', label: '药水' },
+
+    // Effects
+    'fire':          { emoji: '🔥', label: '火焰', isEffect: true },
+    'fog':           { emoji: '🌫️', label: '雾气', isEffect: true },
+    'magic-sparkle': { emoji: '✨', label: '魔法闪光', isEffect: true },
+  },
+
+  // State → emoji overlay map
+  STATE_EMOJI: {
+    idle:       null,
+    surprised:  '❗',
+    eating:     '🍖',
+    drinking:   '🍺',
+    casting:    '✨',
+    fighting:   '💥',
+    look_left:  '👈',
+    spit_drink: '💦',
+  },
 
   async init() {
     this.container = document.getElementById('scene-container');
     if (!this.container) {
       this.container = document.createElement('div');
       this.container.id = 'scene-container';
-      this.container.className = 'scene-container';
-      const gameView = document.getElementById('game-view');
-      if (gameView) gameView.prepend(this.container);
+      document.body.prepend(this.container);
     }
-
-    // Inject CSS for walking/reaction animations and auto-fit
     this._injectStyles();
-
-    // Scan and register all SVG assets
-    await this.loadAssetManifest();
-    console.log(`[SVGRenderer] Loaded ${this.loadedCount} SVG assets`);
-
-    // Set up auto-fit viewBox on window resize
-    this._setupAutoFit();
+    this._loadAllAssets();
+    this._renderDefaultScene();
+    console.log(`[EmojiRenderer] Loaded ${this.loadedCount} emoji assets`);
   },
 
-  // ----------------------------------------------------------------
-  // Style injection (once)
-  // ----------------------------------------------------------------
-
   _injectStyles() {
-    if (document.getElementById('svg-renderer-styles')) return;
+    if (document.getElementById('emoji-renderer-styles')) return;
     const style = document.createElement('style');
-    style.id = 'svg-renderer-styles';
+    style.id = 'emoji-renderer-styles';
     style.textContent = `
-      /* Auto-fit scene container */
       #scene-container {
         position: relative;
         width: 100%;
         height: 100%;
         overflow: hidden;
-      }
-      #scene-container svg.scene-svg {
-        width: 100%;
-        height: 100%;
-        display: block;
+        font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
       }
 
-      /* Layer z-ordering */
-      .scene-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-      .scene-background { z-index: 1; }
-      .scene-objects     { z-index: 10; }
-      .scene-characters  { z-index: 20; }
-      .scene-effects     { z-index: 30; }
-
-      /* Asset positioning */
-      .scene-asset {
+      /* Background layer */
+      .scene-bg {
         position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        transition: opacity 0.6s ease;
+      }
+      .scene-bg .bg-emoji {
+        font-size: min(40vw, 40vh);
+        opacity: 0.15;
+        filter: blur(2px);
+        position: absolute;
+      }
+      .scene-bg .bg-label {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        font-size: 14px;
+        color: rgba(255,255,255,0.4);
+        letter-spacing: 2px;
+      }
+      .scene-bg .bg-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+
+      /* Entity layers */
+      .scene-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10;
+      }
+      .scene-objects { z-index: 10; }
+      .scene-characters { z-index: 20; }
+      .scene-effects { z-index: 30; }
+
+      /* Entity (character/object/effect) */
+      .scene-entity {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         pointer-events: auto;
-        transition: left 0.8s ease-in-out, top 0.8s ease-in-out, opacity 0.3s ease-in-out;
+        cursor: default;
+        transition: left 0.8s cubic-bezier(.4,0,.2,1),
+                    top 0.8s cubic-bezier(.4,0,.2,1),
+                    opacity 0.4s ease,
+                    transform 0.3s ease;
+        transform: translate(-50%, -100%);
+      }
+      .scene-entity .entity-emoji {
+        font-size: 48px;
+        line-height: 1;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        transition: transform 0.3s ease, filter 0.3s ease;
+      }
+      .scene-entity .entity-label {
+        font-size: 10px;
+        color: rgba(255,255,255,0.7);
+        margin-top: 2px;
+        white-space: nowrap;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      }
+      .scene-entity .state-overlay {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        font-size: 20px;
+        animation: overlayPop 0.4s ease;
       }
 
-      /* Walk-in from off-screen left */
-      @keyframes walkInLeft {
-        0%   { transform: translate(-150%, -100%); opacity: 0; }
-        30%  { opacity: 1; }
-        100% { transform: translate(-50%, -100%); opacity: 1; }
-      }
-      /* Walk-in from off-screen right */
-      @keyframes walkInRight {
-        0%   { transform: translate(50%, -100%); opacity: 0; }
-        30%  { opacity: 1; }
-        100% { transform: translate(-50%, -100%); opacity: 1; }
-      }
-      /* Generic walk-in (fade + slide up) */
-      @keyframes walkIn {
-        0%   { transform: translate(-50%, -50%); opacity: 0; }
-        100% { transform: translate(-50%, -100%); opacity: 1; }
+      /* Effect entities are centered, larger */
+      .scene-entity.effect .entity-emoji {
+        font-size: 64px;
+        animation: effectPulse 2s ease-in-out infinite;
       }
 
-      /* Walk-out */
-      @keyframes walkOutLeft {
-        0%   { transform: translate(-50%, -100%); opacity: 1; }
-        100% { transform: translate(-200%, -100%); opacity: 0; }
-      }
-      @keyframes walkOutRight {
-        0%   { transform: translate(-50%, -100%); opacity: 1; }
-        100% { transform: translate(100%, -100%); opacity: 0; }
-      }
-
-      /* Fade in / out */
-      @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-
-      /* Shock / surprise bounce */
-      @keyframes shock {
-        0%, 100% { transform: translate(-50%, -100%) scale(1); }
-        15%      { transform: translate(-50%, -100%) scale(1.15) rotate(-3deg); }
-        30%      { transform: translate(-50%, -100%) scale(1.1) rotate(3deg); }
-        50%      { transform: translate(-50%, -100%) scale(1.05) rotate(-2deg); }
-        70%      { transform: translate(-50%, -100%) scale(1.02); }
+      /* Shadow under characters */
+      .scene-entity .entity-shadow {
+        width: 40px;
+        height: 12px;
+        background: radial-gradient(ellipse, rgba(0,0,0,0.4), transparent);
+        border-radius: 50%;
+        margin-top: 4px;
       }
 
-      /* Casting glow pulse */
-      @keyframes casting {
-        0%, 100% { filter: brightness(1) drop-shadow(0 0 0px transparent); }
-        50%      { filter: brightness(1.4) drop-shadow(0 0 12px #7b68ee); }
+      /* Animations */
+      @keyframes fadeIn { from { opacity:0; transform:translate(-50%,-80%); } to { opacity:1; transform:translate(-50%,-100%); } }
+      @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+      @keyframes walkIn { from { opacity:0; transform:translate(-200%,-100%); } to { opacity:1; transform:translate(-50%,-100%); } }
+      @keyframes walkInRight { from { opacity:0; transform:translate(100%,-100%); } to { opacity:1; transform:translate(-50%,-100%); } }
+      @keyframes shock { 0%,100%{transform:translate(-50%,-100%) scale(1)} 20%{transform:translate(-50%,-100%) scale(1.2) rotate(-5deg)} 40%{transform:translate(-50%,-100%) scale(1.1) rotate(5deg)} 60%{transform:translate(-50%,-100%) scale(1.05)} }
+      @keyframes fighting { 0%,100%{transform:translate(-50%,-100%)} 25%{transform:translate(calc(-50% + 4px),-100%)} 75%{transform:translate(calc(-50% - 4px),-100%)} }
+      @keyframes eating { 0%,100%{transform:translate(-50%,-100%)} 50%{transform:translate(-50%,calc(-100% + 5px))} }
+      @keyframes casting { 0%,100%{filter:brightness(1) drop-shadow(0 0 0 transparent)} 50%{filter:brightness(1.5) drop-shadow(0 0 20px #a78bfa)} }
+      @keyframes idle { 0%,100%{transform:translate(-50%,-100%) scale(1)} 50%{transform:translate(-50%,-100%) scale(1.02)} }
+      @keyframes effectPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.8} 50%{transform:translate(-50%,-50%) scale(1.15);opacity:1} }
+      @keyframes overlayPop { 0%{transform:scale(0)} 60%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+      .anim-fadeIn { animation: fadeIn 0.5s ease forwards; }
+      .anim-fadeOut { animation: fadeOut 0.4s ease forwards; }
+      .anim-walkIn { animation: walkIn 0.8s ease-out forwards; }
+      .anim-walkInRight { animation: walkInRight 0.8s ease-out forwards; }
+      .anim-shock { animation: shock 0.6s ease-in-out; }
+      .anim-fighting { animation: fighting 0.3s ease-in-out infinite; }
+      .anim-eating { animation: eating 0.8s ease-in-out infinite; }
+      .anim-casting { animation: casting 1.2s ease-in-out infinite; }
+      .anim-idle { animation: idle 3s ease-in-out infinite; }
+
+      /* Particle effects */
+      .particle {
+        position: absolute;
+        pointer-events: none;
+        font-size: 16px;
+        z-index: 40;
+        animation: particleFloat 2s ease-out forwards;
       }
-
-      /* Fighting shake */
-      @keyframes fighting {
-        0%, 100% { transform: translate(-50%, -100%); }
-        25%      { transform: translate(calc(-50% + 3px), -100%); }
-        75%      { transform: translate(calc(-50% - 3px), -100%); }
-      }
-
-      /* Eating bob */
-      @keyframes eating {
-        0%, 100% { transform: translate(-50%, -100%); }
-        50%      { transform: translate(-50%, calc(-100% + 4px)); }
-      }
-
-      /* Idle subtle breathing */
-      @keyframes idle {
-        0%, 100% { transform: translate(-50%, -100%) scale(1); }
-        50%      { transform: translate(-50%, -100%) scale(1.015); }
-      }
-
-      .anim-walkInLeft   { animation: walkInLeft 0.8s ease-out forwards; }
-      .anim-walkInRight  { animation: walkInRight 0.8s ease-out forwards; }
-      .anim-walkIn       { animation: walkIn 0.6s ease-out forwards; }
-      .anim-walkOutLeft  { animation: walkOutLeft 0.6s ease-in forwards; }
-      .anim-walkOutRight { animation: walkOutRight 0.6s ease-in forwards; }
-      .anim-fadeIn       { animation: fadeIn 0.4s ease-in forwards; }
-      .anim-fadeOut      { animation: fadeOut 0.4s ease-out forwards; }
-      .anim-shock        { animation: shock 0.6s ease-in-out; }
-      .anim-casting      { animation: casting 1.2s ease-in-out infinite; }
-      .anim-fighting     { animation: fighting 0.3s ease-in-out infinite; }
-      .anim-eating       { animation: eating 0.8s ease-in-out infinite; }
-      .anim-idle         { animation: idle 3s ease-in-out infinite; }
-
-      /* Transition helpers */
-      .scene-transition-fade {
-        transition: opacity 0.6s ease-in-out;
+      @keyframes particleFloat {
+        0% { opacity:1; transform: translate(0,0) scale(1); }
+        100% { opacity:0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
       }
     `;
     document.head.appendChild(style);
   },
 
-  // ----------------------------------------------------------------
-  // Auto-fit viewBox
-  // ----------------------------------------------------------------
-
-  _setupAutoFit() {
-    const resizeHandler = () => this._fitViewBox();
-    window.addEventListener('resize', resizeHandler);
-    // Initial fit after first render
-    setTimeout(() => this._fitViewBox(), 100);
-  },
-
-  _fitViewBox() {
-    // This is a no-op if we're using div-based layout (percentage positioning).
-    // But if svgRoot exists (SVG compositing mode), adjust its viewBox.
-    if (this.svgRoot) {
-      const rect = this.container.getBoundingClientRect();
-      const w = rect.width || 800;
-      const h = rect.height || 500;
-      this.svgRoot.setAttribute('viewBox', `0 0 ${w} ${h}`);
-      this.svgRoot.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  _loadAllAssets() {
+    for (const [id, meta] of Object.entries(this.EMOJI_MAP)) {
+      this.assets[id] = meta.emoji;
+      this.assetMeta[id] = {
+        layer: meta.isEffect ? 'effect' : (['table','chest','torch','sword','potion'].includes(id) ? 'object' : (id.startsWith('bg-') ? 'background' : 'character')),
+        tags: [meta.label, id],
+        origin: 'center-bottom'
+      };
+      this.loadedCount++;
     }
   },
 
-  // ----------------------------------------------------------------
-  // Asset loading
-  // ----------------------------------------------------------------
-
-  async loadAssetManifest() {
-    const manifest = this.getAssetManifest();
-    for (const asset of manifest) {
-      try {
-        const resp = await fetch(asset.path);
-        if (resp.ok) {
-          const svg = await resp.text();
-          this.assets[asset.id] = svg;
-          this.assetMeta[asset.id] = {
-            layer: asset.layer,
-            tags: asset.tags,
-            origin: asset.origin || 'center-bottom'
-          };
-          this.loadedCount++;
-        }
-      } catch (e) {
-        // Asset not found - skip silently
-      }
-    }
+  _renderDefaultScene() {
+    this.renderScene({
+      background: 'bg-village',
+      characters: [],
+      objects: [],
+      effects: []
+    });
   },
 
-  // Built-in asset manifest (all 37 SVG assets)
-  getAssetManifest() {
-    return [
-      // Backgrounds (15)
-      { id: 'bg-forest-day',     path: 'assets/svg/backgrounds/forest-day.svg',     layer: 'background', tags: ['forest', 'day', 'nature', 'woods'] },
-      { id: 'bg-forest-night',   path: 'assets/svg/backgrounds/forest-night.svg',   layer: 'background', tags: ['forest', 'night', 'dark'] },
-      { id: 'bg-tavern-interior',path: 'assets/svg/backgrounds/tavern-interior.svg',layer: 'background', tags: ['tavern', 'interior', 'inn', 'bar'] },
-      { id: 'bg-crossroad',      path: 'assets/svg/backgrounds/crossroad.svg',      layer: 'background', tags: ['crossroad', 'road', 'intersection'] },
-      { id: 'bg-town-square',    path: 'assets/svg/backgrounds/town-square.svg',    layer: 'background', tags: ['town', 'square', 'plaza'] },
-      { id: 'bg-cave-entrance',  path: 'assets/svg/backgrounds/cave-entrance.svg',  layer: 'background', tags: ['cave', 'entrance', 'dungeon'] },
-      { id: 'bg-market',         path: 'assets/svg/backgrounds/market.svg',         layer: 'background', tags: ['market', 'shop', 'trade'] },
-      { id: 'bg-castle-gate',    path: 'assets/svg/backgrounds/castle-gate.svg',    layer: 'background', tags: ['castle', 'gate', 'fortress'] },
-      { id: 'bg-castle',         path: 'assets/svg/backgrounds/castle.svg',         layer: 'background', tags: ['castle', 'fortress', 'tower'] },
-      { id: 'bg-cave',           path: 'assets/svg/backgrounds/cave.svg',           layer: 'background', tags: ['cave', 'dungeon', 'underground'] },
-      { id: 'bg-forest',         path: 'assets/svg/backgrounds/forest.svg',         layer: 'background', tags: ['forest', 'woods', 'tree', 'nature'] },
-      { id: 'bg-mountain',       path: 'assets/svg/backgrounds/mountain.svg',       layer: 'background', tags: ['mountain', 'peak', 'highland'] },
-      { id: 'bg-river',          path: 'assets/svg/backgrounds/river.svg',          layer: 'background', tags: ['river', 'water', 'stream', 'bridge'] },
-      { id: 'bg-tavern',         path: 'assets/svg/backgrounds/tavern.svg',         layer: 'background', tags: ['tavern', 'inn', 'bar', 'drink'] },
-      { id: 'bg-village',        path: 'assets/svg/backgrounds/village.svg',        layer: 'background', tags: ['village', 'town', 'houses'] },
-
-      // Characters (14)
-      { id: 'warrior-idle',   path: 'assets/svg/characters/warrior-idle.svg',   layer: 'character', tags: ['warrior', 'fighter', 'soldier', 'knight', 'hero'] },
-      { id: 'mage-idle',      path: 'assets/svg/characters/mage-idle.svg',      layer: 'character', tags: ['mage', 'wizard', 'sorcerer', 'magic'] },
-      { id: 'npc-merchant',   path: 'assets/svg/characters/npc-merchant.svg',   layer: 'character', tags: ['merchant', 'trader', 'shopkeeper', 'vendor'] },
-      { id: 'npc-guard',      path: 'assets/svg/characters/npc-guard.svg',      layer: 'character', tags: ['guard', 'sentinel', 'patrol', 'soldier'] },
-      { id: 'animal-sheep',   path: 'assets/svg/characters/animal-sheep.svg',   layer: 'character', tags: ['sheep', 'animal', 'wool', 'farm'] },
-      { id: 'animal-horse',   path: 'assets/svg/characters/animal-horse.svg',   layer: 'character', tags: ['horse', 'mount', 'ride', 'animal'] },
-      { id: 'bard',           path: 'assets/svg/characters/bard.svg',           layer: 'character', tags: ['bard', 'musician', 'singer', 'entertainer'] },
-      { id: 'guard',          path: 'assets/svg/characters/guard.svg',          layer: 'character', tags: ['guard', 'sentinel', 'soldier'] },
-      { id: 'healer',         path: 'assets/svg/characters/healer.svg',         layer: 'character', tags: ['healer', 'priest', 'cleric', 'medic'] },
-      { id: 'mage',           path: 'assets/svg/characters/mage.svg',           layer: 'character', tags: ['mage', 'wizard', 'sorcerer', 'magic'] },
-      { id: 'merchant',       path: 'assets/svg/characters/merchant.svg',       layer: 'character', tags: ['merchant', 'trader', 'shopkeeper'] },
-      { id: 'rogue',          path: 'assets/svg/characters/rogue.svg',          layer: 'character', tags: ['rogue', 'thief', 'assassin', 'shadow'] },
-      { id: 'villager',       path: 'assets/svg/characters/villager.svg',       layer: 'character', tags: ['villager', 'citizen', 'commoner'] },
-      { id: 'warrior',        path: 'assets/svg/characters/warrior.svg',        layer: 'character', tags: ['warrior', 'fighter', 'soldier', 'knight'] },
-
-      // Objects (5)
-      { id: 'table',       path: 'assets/svg/objects/table.svg',       layer: 'object', tags: ['table', 'furniture'] },
-      { id: 'chest',       path: 'assets/svg/objects/chest.svg',       layer: 'object', tags: ['chest', 'treasure', 'loot'] },
-      { id: 'torch',       path: 'assets/svg/objects/torch.svg',       layer: 'object', tags: ['torch', 'fire', 'light'] },
-      { id: 'sword',       path: 'assets/svg/objects/sword.svg',       layer: 'object', tags: ['sword', 'weapon', 'blade'] },
-      { id: 'potion',      path: 'assets/svg/objects/potion.svg',      layer: 'object', tags: ['potion', 'heal', 'drink', 'bottle'] },
-
-      // Effects (3)
-      { id: 'fire',            path: 'assets/svg/effects/fire.svg',            layer: 'effect', tags: ['fire', 'flame', 'burn'] },
-      { id: 'fog',             path: 'assets/svg/effects/fog.svg',             layer: 'effect', tags: ['fog', 'mist', 'atmosphere'] },
-      { id: 'magic-sparkle',   path: 'assets/svg/effects/magic-sparkle.svg',   layer: 'effect', tags: ['magic', 'sparkle', 'glow', 'shine'] },
-    ];
-  },
-
-  // ----------------------------------------------------------------
-  // Tag-based asset search
-  // ----------------------------------------------------------------
-
-  findAssets(tags) {
-    const results = [];
-    for (const [id, meta] of Object.entries(this.assetMeta)) {
-      const matchScore = tags.filter(t => meta.tags.includes(t)).length;
-      if (matchScore > 0) {
-        results.push({ id, score: matchScore, ...meta });
-      }
-    }
-    return results.sort((a, b) => b.score - a.score);
-  },
-
-  // ----------------------------------------------------------------
-  // Layer management (ensure correct z-order)
-  // ----------------------------------------------------------------
-
-  _ensureLayer(layerClass) {
-    let layer = this.container.querySelector(`.${layerClass}`);
-    if (!layer) {
-      layer = document.createElement('div');
-      layer.className = `scene-layer ${layerClass}`;
-      this.container.appendChild(layer);
-      this._reorderLayers();
-    }
-    return layer;
-  },
-
-  _reorderLayers() {
-    // Ensure layers are in the correct DOM order (background < objects < characters < effects)
-    const children = Array.from(this.container.children);
-    for (const layerClass of this._layerOrder) {
-      const el = children.find(c => c.classList.contains(layerClass));
-      if (el) {
-        this.container.appendChild(el); // moves to end (correct order)
-      }
-    }
-  },
-
-  _getLayerForAsset(assetId) {
-    const meta = this.assetMeta[assetId];
-    if (!meta) return 'scene-characters';
-    switch (meta.layer) {
-      case 'background': return 'scene-background';
-      case 'object':     return 'scene-objects';
-      case 'character':  return 'scene-characters';
-      case 'effect':     return 'scene-effects';
-      default:           return 'scene-characters';
-    }
-  },
-
-  // ----------------------------------------------------------------
-  // Character state system
-  // ----------------------------------------------------------------
-
-  /**
-   * Get the current state of a character asset.
-   * @param {string} assetId
-   * @returns {string} state name (e.g. 'idle','surprised','eating')
-   */
-  getCharacterState(assetId) {
-    return this.characterStates[assetId] || 'idle';
-  },
-
-  /**
-   * Set a character's visual state. Modifies SVG elements dynamically.
-   * Supported states: idle, surprised, eating, drinking, casting, fighting, look_left, spit_drink
-   *
-   * How it works: we wrap the original SVG in a container and apply CSS classes
-   * that trigger state-specific animations and overlays.
-   */
-  setCharacterState(assetId, state) {
-    if (!this.container) return;
-
-    const el = this.container.querySelector(`[data-id="${assetId}"]`);
-    if (!el) return;
-
-    const prevState = this.characterStates[assetId] || 'idle';
-    this.characterStates[assetId] = state;
-
-    // Remove previous state classes
-    el.classList.remove(`state-${prevState}`, `anim-${prevState}`);
-    // Remove any state overlay
-    const oldOverlay = el.querySelector('.state-overlay');
-    if (oldOverlay) oldOverlay.remove();
-
-    // Apply new state
-    el.classList.add(`state-${state}`);
-
-    // Map states to animation classes and overlays
-    const stateConfig = {
-      idle:       { anim: 'idle',       overlay: null },
-      surprised:  { anim: 'shock',      overlay: '❗' },
-      eating:     { anim: 'eating',     overlay: '🍖' },
-      drinking:   { anim: 'eating',     overlay: '🍺' },
-      casting:    { anim: 'casting',    overlay: '✨' },
-      fighting:   { anim: 'fighting',   overlay: '⚔️' },
-      look_left:  { anim: null,         overlay: null, cssTransform: 'scaleX(1)' },
-      spit_drink: { anim: 'shock',      overlay: '💦' },
-    };
-
-    const config = stateConfig[state] || stateConfig.idle;
-
-    if (config.anim) {
-      el.classList.add(`anim-${config.anim}`);
-    }
-    if (config.cssTransform) {
-      el.style.transform = config.cssTransform;
-    }
-
-    // Add emoji overlay for visual feedback
-    if (config.overlay) {
-      const overlay = document.createElement('div');
-      overlay.className = 'state-overlay';
-      overlay.style.cssText = 'position:absolute;top:-10px;right:-10px;font-size:18px;pointer-events:none;z-index:99;';
-      overlay.textContent = config.overlay;
-      el.appendChild(overlay);
-    }
-
-    EventBus.emit('character:state', { id: assetId, state, prevState });
-  },
-
-  // ----------------------------------------------------------------
-  // Render a complete scene (full re-render)
-  // ----------------------------------------------------------------
+  // ── Render a complete scene ─────────────────────────────────
 
   renderScene(sceneData) {
     if (!this.container) return;
+    const { background, characters = [], objects = [], effects = [] } = sceneData;
+    this.container.innerHTML = '';
 
-    const { background, characters = [], objects = [], effects = [], transition = 'fade' } = sceneData;
+    // Background
+    this._renderBackground(background);
 
-    // Build layers HTML in correct z-order
-    let html = '';
+    // Layers
+    const objLayer = this._createLayer('scene-objects');
+    const charLayer = this._createLayer('scene-characters');
+    const fxLayer = this._createLayer('scene-effects');
 
-    // Background layer
-    if (background && this.assets[background]) {
-      html += `<div class="scene-layer scene-background">${this.assets[background]}</div>`;
-    } else if (background) {
-      html += `<div class="scene-layer scene-background scene-bg-default" data-scene="${background}"></div>`;
-    }
+    for (const obj of objects) this._renderEntity(obj, objLayer, 'object');
+    for (const char of characters) this._renderEntity(char, charLayer, 'character');
+    for (const fx of effects) this._renderEntity(fx, fxLayer, 'effect');
 
-    // Objects layer
-    html += '<div class="scene-layer scene-objects">';
-    for (const obj of objects) {
-      if (this.assets[obj.id]) {
-        html += `<div class="scene-asset scene-object" 
-          style="left:${obj.x||50}%;top:${obj.y||50}%;transform:translate(-50%,-100%) scale(${obj.scale||1})"
-          data-id="${obj.id}">
-          ${this.assets[obj.id]}
-        </div>`;
-      }
-    }
-    html += '</div>';
-
-    // Characters layer
-    html += '<div class="scene-layer scene-characters">';
-    for (const char of characters) {
-      if (this.assets[char.id]) {
-        const state = this.characterStates[char.id] || char.state || 'idle';
-        html += `<div class="scene-asset scene-character state-${state} ${char.animation ? 'anim-' + char.animation : ''}" 
-          style="left:${char.x||50}%;top:${char.y||60}%;transform:translate(-50%,-100%) scale(${char.scale||1})"
-          data-id="${char.id}"
-          data-state="${state}">
-          ${this.assets[char.id]}
-        </div>`;
-      }
-    }
-    html += '</div>';
-
-    // Effects layer
-    html += '<div class="scene-layer scene-effects">';
-    for (const fx of effects) {
-      if (this.assets[fx.id]) {
-        html += `<div class="scene-asset scene-effect ${fx.animation ? 'anim-' + fx.animation : ''}" 
-          style="left:${fx.x||50}%;top:${fx.y||50}%;transform:translate(-50%,-50%) scale(${fx.scale||1})"
-          data-id="${fx.id}">
-          ${this.assets[fx.id]}
-        </div>`;
-      }
-    }
-    html += '</div>';
-
-    // Apply transition
-    this.container.className = `scene-container scene-transition-${transition}`;
-    this.container.innerHTML = html;
     this.currentScene = sceneData;
-
-    // Trigger transition
-    requestAnimationFrame(() => {
-      this.container.classList.add('scene-visible');
-      this._fitViewBox();
-    });
-
     EventBus.emit('scene:rendered', sceneData);
   },
 
-  // ----------------------------------------------------------------
-  // Dynamic add asset (with walk-in animation)
-  // ----------------------------------------------------------------
+  _renderBackground(bgId) {
+    const bg = this.EMOJI_MAP[bgId];
+    if (!bg) return;
 
-  /**
-   * Dynamically add an asset to the current scene.
-   *
-   * @param {string} assetId   - The asset ID (e.g. 'warrior', 'chest')
-   * @param {object} options   - { x, y, scale, animation, state, fromX, fromY, duration }
-   *   fromX/fromY: starting position for walk-in animation (CSS transition-based)
-   *   duration: walk-in duration in ms (default 800)
-   *   state: initial character state (default 'idle')
-   */
-  addAsset(assetId, options = {}) {
-    if (!this.container || !this.assets[assetId]) return;
+    const div = document.createElement('div');
+    div.className = 'scene-bg';
+    const colors = bg.gradient || ['#1a1a2e','#16213e','#0f3460'];
+    div.style.background = `linear-gradient(180deg, ${colors.join(', ')})`;
 
-    const meta = this.assetMeta[assetId];
-    const layerClass = this._getLayerForAsset(assetId);
-    const layer = this._ensureLayer(layerClass);
-
-    const el = document.createElement('div');
-    el.className = `scene-asset scene-${meta.layer}`;
-    el.dataset.id = assetId;
-    el.innerHTML = this.assets[assetId];
-
-    const targetX = options.x || 50;
-    const targetY = options.y || (meta.layer === 'effect' ? 50 : 60);
-    const scale = options.scale || 1;
-
-    // --- Walk-in animation from fromX/fromY ---
-    if (options.fromX !== undefined || options.fromY !== undefined) {
-      const fromX = options.fromX !== undefined ? options.fromX : targetX;
-      const fromY = options.fromY !== undefined ? options.fromY : targetY;
-      const duration = options.duration || 800;
-
-      // Start at origin position
-      el.style.left = fromX + '%';
-      el.style.top = fromY + '%';
-      el.style.transform = `translate(-50%,-100%) scale(${scale})`;
-      el.style.transition = `left ${duration}ms ease-in-out, top ${duration}ms ease-in-out`;
-      el.style.opacity = '0';
-
-      layer.appendChild(el);
-
-      // Trigger walk-in on next frame
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          el.style.opacity = '1';
-          el.style.left = targetX + '%';
-          el.style.top = targetY + '%';
-        });
-      });
-
-      // Clean up transition after walk-in
-      setTimeout(() => {
-        el.style.transition = '';
-      }, duration + 50);
-
-    } else if (options.animation) {
-      // CSS keyframe animation (walkIn, fadeIn, etc.)
-      el.style.left = targetX + '%';
-      el.style.top = targetY + '%';
-      el.style.transform = `translate(-50%,-100%) scale(${scale})`;
-      el.classList.add(`anim-${options.animation}`);
-
-      layer.appendChild(el);
-
-      el.addEventListener('animationend', () => {
-        el.className = el.className.replace(`anim-${options.animation}`, '').trim();
-      }, { once: true });
-
-    } else {
-      // No animation — place directly
-      el.style.left = targetX + '%';
-      el.style.top = targetY + '%';
-      el.style.transform = `translate(-50%,-100%) scale(${scale})`;
-      layer.appendChild(el);
-    }
-
-    // Set initial character state
-    if (meta.layer === 'character') {
-      const state = options.state || 'idle';
-      this.characterStates[assetId] = state;
-      el.classList.add(`state-${state}`);
-    }
-
-    EventBus.emit('asset:added', { id: assetId, ...options });
+    div.innerHTML = `
+      <div class="bg-grid"></div>
+      <span class="bg-emoji">${bg.emoji}</span>
+      <span class="bg-label">${bg.label || bgId}</span>
+    `;
+    this.container.appendChild(div);
   },
 
-  // ----------------------------------------------------------------
-  // Remove asset (with optional walk-out animation)
-  // ----------------------------------------------------------------
+  _createLayer(className) {
+    const div = document.createElement('div');
+    div.className = `scene-layer ${className}`;
+    this.container.appendChild(div);
+    return div;
+  },
+
+  _renderEntity(data, layer, type) {
+    const id = data.id;
+    const meta = this.EMOJI_MAP[id];
+    if (!meta) return;
+
+    const state = data.state || this.characterStates[id] || 'idle';
+
+    // Get emoji for current state
+    let emoji = meta.emoji;
+    if (meta.states && meta.states[state]) {
+      emoji = meta.states[state];
+    }
+
+    const el = document.createElement('div');
+    el.className = `scene-entity ${type}`;
+    el.dataset.id = id;
+    el.style.left = (data.x || 50) + '%';
+    el.style.top = (data.y || (type === 'effect' ? 40 : 60)) + '%';
+
+    if (type === 'effect') {
+      el.classList.add('effect');
+      el.style.transform = 'translate(-50%, -50%)';
+      el.style.transformOrigin = 'center center';
+    }
+
+    const scale = data.scale || 1;
+    const fontSize = type === 'effect' ? 64 : 48;
+    const scaledSize = Math.round(fontSize * scale);
+
+    el.innerHTML = `
+      <span class="entity-emoji" style="font-size:${scaledSize}px">${emoji}</span>
+      ${type !== 'effect' ? '<div class="entity-shadow"></div>' : ''}
+      ${type !== 'effect' ? `<span class="entity-label">${meta.label || id}</span>` : ''}
+    `;
+
+    // Animation
+    if (data.animation) {
+      el.classList.add(`anim-${data.animation}`);
+    }
+
+    // Walk-in from offscreen
+    if (data.fromX !== undefined) {
+      el.style.left = data.fromX + '%';
+      el.style.transition = `left ${data.duration || 800}ms cubic-bezier(.4,0,.2,1)`;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          el.style.left = (data.x || 50) + '%';
+        });
+      });
+      setTimeout(() => { el.style.transition = ''; }, (data.duration || 800) + 50);
+    }
+
+    layer.appendChild(el);
+
+    // Store character state
+    if (type === 'character') {
+      this.characterStates[id] = state;
+    }
+
+    // Spawn particles for effects
+    if (type === 'effect' || state === 'casting') {
+      this._spawnParticles(el, id);
+    }
+  },
+
+  // ── Dynamic asset operations ────────────────────────────────
+
+  addAsset(assetId, options = {}) {
+    if (!this.container) return;
+    const meta = this.EMOJI_MAP[assetId];
+    if (!meta) return;
+
+    const type = meta.isEffect ? 'effect' : (this.assetMeta[assetId]?.layer === 'object' ? 'object' : 'character');
+    const layerClass = type === 'effect' ? 'scene-effects' : (type === 'object' ? 'scene-objects' : 'scene-characters');
+
+    let layer = this.container.querySelector(`.${layerClass}`);
+    if (!layer) layer = this._createLayer(layerClass);
+
+    this._renderEntity({ id: assetId, ...options }, layer, type);
+    EventBus.emit('asset:added', { id: assetId, ...options });
+  },
 
   removeAsset(assetId, animation = 'fadeOut') {
     if (!this.container) return;
     const el = this.container.querySelector(`[data-id="${assetId}"]`);
     if (!el) return;
 
-    // Clean up character state
     delete this.characterStates[assetId];
-    if (this._animationTimers[assetId]) {
-      clearTimeout(this._animationTimers[assetId]);
-      delete this._animationTimers[assetId];
-    }
-
     el.classList.add(`anim-${animation}`);
     el.addEventListener('animationend', () => el.remove(), { once: true });
     EventBus.emit('asset:removed', { id: assetId });
   },
-
-  // ----------------------------------------------------------------
-  // Reaction animation (temporarily change state)
-  // ----------------------------------------------------------------
-
-  /**
-   * Temporarily change a character's state, then revert after delay.
-   * Supports chained reactions via array input.
-   *
-   * @param {string} assetId  - Character asset ID
-   * @param {string} state    - Temporary state ('surprised', 'casting', etc.)
-   * @param {number} delay    - How long to hold the state (ms), default 2000
-   * @param {string} revertTo - State to revert to (default 'idle')
-   */
-  addReaction(assetId, state, delay = 2000, revertTo = 'idle') {
-    if (!this.container) return;
-
-    // Clear any existing reaction timer for this asset
-    if (this._animationTimers[assetId]) {
-      clearTimeout(this._animationTimers[assetId]);
-    }
-
-    // Apply the reaction state immediately
-    this.setCharacterState(assetId, state);
-
-    // Schedule revert
-    this._animationTimers[assetId] = setTimeout(() => {
-      this.setCharacterState(assetId, revertTo);
-      delete this._animationTimers[assetId];
-    }, delay);
-
-    EventBus.emit('character:reaction', { id: assetId, state, delay, revertTo });
-  },
-
-  /**
-   * Execute a chain of reactions with delays.
-   * @param {Array} reactions - [{id, state, delay, revertTo}]
-   */
-  addReactionChain(reactions) {
-    if (!Array.isArray(reactions)) return;
-
-    for (const r of reactions) {
-      const startDelay = r.startDelay || 0;
-      setTimeout(() => {
-        this.addReaction(r.id, r.state, r.duration || 2000, r.revertTo || 'idle');
-      }, startDelay);
-    }
-  },
-
-  // ----------------------------------------------------------------
-  // Update an existing asset in-place (position, scale, state)
-  // ----------------------------------------------------------------
 
   updateAsset(assetId, options = {}) {
     if (!this.container) return;
@@ -623,10 +402,11 @@ const SVGRenderer = {
     if (options.x !== undefined) el.style.left = options.x + '%';
     if (options.y !== undefined) el.style.top = options.y + '%';
     if (options.scale !== undefined) {
-      el.style.transform = `translate(-50%,-100%) scale(${options.scale})`;
+      const emoji = el.querySelector('.entity-emoji');
+      if (emoji) emoji.style.fontSize = Math.round(48 * options.scale) + 'px';
     }
-    if (options.state !== undefined && this.assetMeta[assetId]?.layer === 'character') {
-      this.setCharacterState(assetId, options.state);
+    if (options.state !== undefined) {
+      this._updateEntityState(el, assetId, options.state);
     }
     if (options.animation) {
       el.classList.add(`anim-${options.animation}`);
@@ -636,125 +416,131 @@ const SVGRenderer = {
     }
   },
 
-  // ----------------------------------------------------------------
-  // Time-of-day filter
-  // ----------------------------------------------------------------
+  _updateEntityState(el, assetId, state) {
+    const meta = this.EMOJI_MAP[assetId];
+    if (!meta) return;
 
-  setTimeFilter(phase) {
-    if (!this.container) return;
-    this.container.dataset.timePhase = phase;
+    const prevState = this.characterStates[assetId] || 'idle';
+    this.characterStates[assetId] = state;
+
+    // Update emoji
+    const emojiEl = el.querySelector('.entity-emoji');
+    if (emojiEl && meta.states) {
+      emojiEl.textContent = meta.states[state] || meta.emoji;
+    }
+
+    // Remove old state classes
+    el.classList.remove(`state-${prevState}`, `anim-${prevState}`);
+    const oldOverlay = el.querySelector('.state-overlay');
+    if (oldOverlay) oldOverlay.remove();
+
+    // Apply new state animation
+    const animMap = {
+      surprised: 'shock', fighting: 'fighting', eating: 'eating',
+      casting: 'casting', idle: 'idle'
+    };
+    if (animMap[state]) el.classList.add(`anim-${animMap[state]}`);
+
+    // State overlay emoji
+    const overlayEmoji = this.STATE_EMOJI[state];
+    if (overlayEmoji) {
+      const overlay = document.createElement('span');
+      overlay.className = 'state-overlay';
+      overlay.textContent = overlayEmoji;
+      el.appendChild(overlay);
+    }
+
+    EventBus.emit('character:state', { id: assetId, state, prevState });
   },
 
-  // ----------------------------------------------------------------
-  // Weather effects
-  // ----------------------------------------------------------------
+  // ── Character state system ──────────────────────────────────
 
-  setWeatherEffect(weather) {
-    if (!this.container) return;
-    this.container.querySelectorAll('.scene-weather').forEach(el => el.remove());
+  setCharacterState(assetId, state) {
+    const el = this.container?.querySelector(`[data-id="${assetId}"]`);
+    if (!el) return;
+    this._updateEntityState(el, assetId, state);
+  },
 
-    if (weather === 'rain' && this.assets['rain']) {
-      const el = document.createElement('div');
-      el.className = 'scene-layer scene-weather';
-      el.innerHTML = this.assets['rain'];
-      this.container.appendChild(el);
+  getCharacterState(assetId) {
+    return this.characterStates[assetId] || 'idle';
+  },
+
+  // ── Reactions ───────────────────────────────────────────────
+
+  addReaction(assetId, state, delay = 2000, revertTo = 'idle') {
+    if (this._animationTimers[assetId]) clearTimeout(this._animationTimers[assetId]);
+    this.setCharacterState(assetId, state);
+    this._animationTimers[assetId] = setTimeout(() => {
+      this.setCharacterState(assetId, revertTo);
+      delete this._animationTimers[assetId];
+    }, delay);
+  },
+
+  addReactionChain(reactions) {
+    if (!Array.isArray(reactions)) return;
+    for (const r of reactions) {
+      setTimeout(() => {
+        this.addReaction(r.id, r.state, r.duration || 2000, r.revertTo || 'idle');
+      }, r.startDelay || 0);
     }
   },
 
-  // ----------------------------------------------------------------
-  // Bulk effect application
-  // ----------------------------------------------------------------
+  // ── Effects ─────────────────────────────────────────────────
 
   applyEffects(effects) {
-    if (!this.container || !effects || !Array.isArray(effects)) return;
-
-    for (const effect of effects) {
-      const assetId = effect.id;
-      if (!this.assets[assetId]) {
-        console.warn(`[SVGRenderer] Effect asset not found: ${assetId}`);
-        continue;
+    if (!this.container || !effects) return;
+    for (const fx of effects) {
+      this.addAsset(fx.id, fx);
+      if (fx.duration) {
+        setTimeout(() => this.removeAsset(fx.id), fx.duration);
       }
-
-      const existing = this.container.querySelector(`.scene-effect[data-id="${assetId}"]`);
-      if (existing) continue;
-
-      const layer = this._ensureLayer('scene-effects');
-
-      const el = document.createElement('div');
-      el.className = `scene-asset scene-effect ${effect.animation ? 'anim-' + effect.animation : ''}`;
-      el.style.left = (effect.x || 50) + '%';
-      el.style.top = (effect.y || 50) + '%';
-      el.style.transform = `translate(-50%,-50%) scale(${effect.scale || 1})`;
-      el.dataset.id = assetId;
-      el.innerHTML = this.assets[assetId];
-
-      layer.appendChild(el);
-
-      if (effect.duration) {
-        setTimeout(() => {
-          el.classList.add('anim-fadeOut');
-          el.addEventListener('animationend', () => el.remove(), { once: true });
-        }, effect.duration);
-      }
-
-      el.addEventListener('animationend', function handler() {
-        if (el.classList.contains('anim-fadeOut')) {
-          el.remove();
-        } else {
-          el.className = 'scene-asset scene-effect';
-        }
-        el.removeEventListener('animationend', handler);
-      });
     }
-
-    EventBus.emit('effects:applied', effects);
   },
 
-  // ----------------------------------------------------------------
-  // Scene transition
-  // ----------------------------------------------------------------
+  // ── Particle system ─────────────────────────────────────────
+
+  _spawnParticles(el, type) {
+    const particles = type === 'fire' ? ['🔥','💥','⭐'] :
+                      type === 'magic-sparkle' ? ['✨','💫','⭐','🌟'] :
+                      type === 'casting' ? ['✨','💫','🔮'] :
+                      ['✨','💫'];
+
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        const p = document.createElement('span');
+        p.className = 'particle';
+        p.textContent = particles[Math.floor(Math.random() * particles.length)];
+        p.style.left = (Math.random() * 60 - 30) + 'px';
+        p.style.top = (Math.random() * 40 - 20) + 'px';
+        p.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px');
+        p.style.setProperty('--dy', -(Math.random() * 60 + 20) + 'px');
+        el.appendChild(p);
+        p.addEventListener('animationend', () => p.remove());
+      }, i * 300);
+    }
+  },
+
+  // ── Clear ───────────────────────────────────────────────────
+
+  clearScene() {
+    if (!this.container) return;
+    this.container.innerHTML = '';
+    this.characterStates = {};
+    for (const k of Object.keys(this._animationTimers)) clearTimeout(this._animationTimers[k]);
+    this._animationTimers = {};
+    this.currentScene = null;
+    EventBus.emit('scene:cleared');
+  },
+
+  // ── Transition ──────────────────────────────────────────────
 
   transition(type = 'fade', duration = 600) {
     if (!this.container) return Promise.resolve();
-
-    return new Promise((resolve) => {
-      this.container.classList.remove('scene-visible', 'scene-transition-fade', 'scene-transition-slide', 'scene-transition-zoom', 'scene-transition-none');
-      this.container.style.transition = `opacity ${duration}ms ease-in-out`;
-
-      switch (type) {
-        case 'fade':
-          this.container.style.opacity = '0';
-          break;
-        case 'slide-left':
-          this.container.style.transform = 'translateX(-100%)';
-          this.container.style.opacity = '0';
-          break;
-        case 'slide-right':
-          this.container.style.transform = 'translateX(100%)';
-          this.container.style.opacity = '0';
-          break;
-        case 'slide-up':
-          this.container.style.transform = 'translateY(-100%)';
-          this.container.style.opacity = '0';
-          break;
-        case 'zoom':
-          this.container.style.transform = 'scale(0.1)';
-          this.container.style.opacity = '0';
-          break;
-        case 'none':
-          this.container.style.opacity = '1';
-          this.container.style.transform = '';
-          resolve();
-          return;
-        default:
-          this.container.style.opacity = '0';
-      }
-
+    return new Promise(resolve => {
+      this.container.style.transition = `opacity ${duration}ms ease`;
+      this.container.style.opacity = '0';
       setTimeout(() => {
-        this.container.style.transform = '';
-        if (this.currentScene) {
-          this.renderScene(this.currentScene);
-        }
+        if (this.currentScene) this.renderScene(this.currentScene);
         requestAnimationFrame(() => {
           this.container.style.opacity = '1';
           setTimeout(() => {
@@ -763,24 +549,55 @@ const SVGRenderer = {
           }, duration);
         });
       }, duration);
-
-      EventBus.emit('scene:transition', { type, duration });
     });
   },
 
-  // ----------------------------------------------------------------
-  // Clear all scene content
-  // ----------------------------------------------------------------
+  // ── Time/Weather ────────────────────────────────────────────
 
-  clearScene() {
+  setTimeFilter(phase) {
     if (!this.container) return;
-    this.container.innerHTML = '';
-    this.characterStates = {};
-    for (const key of Object.keys(this._animationTimers)) {
-      clearTimeout(this._animationTimers[key]);
+    const filters = {
+      day: 'brightness(1) saturate(1)',
+      dusk: 'brightness(0.8) saturate(0.8) sepia(0.2)',
+      night: 'brightness(0.5) saturate(0.6) hue-rotate(20deg)',
+      dawn: 'brightness(0.9) saturate(0.9) sepia(0.1)'
+    };
+    this.container.style.filter = filters[phase] || '';
+  },
+
+  setWeatherEffect(weather) {
+    this.container?.querySelectorAll('.weather-layer').forEach(el => el.remove());
+    if (weather === 'rain') {
+      const layer = document.createElement('div');
+      layer.className = 'scene-layer weather-layer';
+      layer.style.cssText = 'z-index:35;pointer-events:none;';
+      for (let i = 0; i < 30; i++) {
+        const drop = document.createElement('span');
+        drop.textContent = '💧';
+        drop.style.cssText = `position:absolute;font-size:12px;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:0.5;animation:particleFloat 1.5s linear infinite;animation-delay:${Math.random()*2}s`;
+        layer.appendChild(drop);
+      }
+      this.container.appendChild(layer);
     }
-    this._animationTimers = {};
-    this.currentScene = null;
-    EventBus.emit('scene:cleared');
+  },
+
+  // ── Asset search ────────────────────────────────────────────
+
+  findAssets(tags) {
+    const results = [];
+    for (const [id, meta] of Object.entries(this.assetMeta)) {
+      const score = tags.filter(t => meta.tags.includes(t)).length;
+      if (score > 0) results.push({ id, score, ...meta });
+    }
+    return results.sort((a, b) => b.score - a.score);
+  },
+
+  getAssetManifest() {
+    return Object.entries(this.EMOJI_MAP).map(([id, meta]) => ({
+      id,
+      layer: meta.isEffect ? 'effect' : (['table','chest','torch','sword','potion'].includes(id) ? 'object' : (id.startsWith('bg-') ? 'background' : 'character')),
+      tags: [meta.label, id],
+      origin: 'center-bottom'
+    }));
   }
 };
