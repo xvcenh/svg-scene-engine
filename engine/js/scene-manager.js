@@ -201,27 +201,34 @@ const SceneManager = {
     let targetX = asset.toX !== undefined ? asset.toX : (asset.x || 50);
     const targetY = asset.y || (meta.layer === 'effect' ? 50 : 60);
 
-    // Auto-space: avoid overlapping existing entities
+    // Auto-space: avoid overlapping entities in the same layer
     if (meta.layer === 'character' || meta.layer === 'object') {
-      const MIN_GAP = 10; // minimum % gap between entities
+      const MIN_GAP = meta.layer === 'character' ? 12 : 8;
       const container = SVGRenderer.container;
       if (container) {
-        const existing = container.querySelectorAll('.scene-entity');
-        let attempts = 0;
-        while (attempts < 10) {
-          let overlap = false;
-          for (const el of existing) {
-            const elX = parseFloat(el.style.left);
-            if (Math.abs(elX - targetX) < MIN_GAP && el.dataset.id !== asset.id) {
-              overlap = true;
-              break;
+        const layerClass = meta.layer === 'character' ? '.scene-characters' : '.scene-objects';
+        const layerEl = container.querySelector(layerClass);
+        if (layerEl) {
+          const siblings = layerEl.querySelectorAll('.scene-entity');
+          let attempts = 0;
+          let adjustedX = targetX;
+          while (attempts < 15) {
+            let overlap = false;
+            for (const el of siblings) {
+              const elX = parseFloat(el.style.left);
+              if (Math.abs(elX - adjustedX) < MIN_GAP) {
+                overlap = true;
+                break;
+              }
             }
+            if (!overlap) { targetX = adjustedX; break; }
+            // Alternate: shift right then left, expanding outward
+            const offset = MIN_GAP * (Math.floor(attempts / 2) + 1);
+            adjustedX = attempts % 2 === 0 ? targetX + offset : targetX - offset;
+            if (adjustedX < 5) adjustedX = 5;
+            if (adjustedX > 95) adjustedX = 95;
+            attempts++;
           }
-          if (!overlap) break;
-          // Shift right, wrap around at 90%
-          targetX = targetX + MIN_GAP;
-          if (targetX > 90) targetX = 10;
-          attempts++;
         }
       }
     }
