@@ -34,6 +34,22 @@ const SVGRenderer = {
     chair:'🪑',bed:'🛏️',candle:'🕯️',bell:'🔔',
     ghost:'👻',angel:'👼',demon:'👹',fairy:'🧚',
     sword:'⚔️',dagger:'🗡️',wand:'🪄',hammer:'🔨',
+    // Clothed figures / NPCs
+    hooded:'🫣',hood:'🫣',cloak:'🧣',mysterious:'🌑',stranger:'🌑',
+    figure:'🧍',person:'🧑',man:'👨',woman:'👩',child:'👶',
+    king:'👑',queen:'👸',knight:'⚔️',wizard:'🧙',witch:'🧙‍♀️',
+    priest:'⛪',merchant:'💰',thief:'🥷',assassin:'🥷',
+    bandit:'🗡️',pirate:'🏴‍☠️',soldier:'💂',guard:'💂',
+    // More nature
+    mushroom:'🍄',leaf:'🍃',branch:'🌿',root:'🌱',
+    pond:'💧',ocean:'🌊',wave:'🌊',island:'🏝️',
+    // More objects
+    map:'🗺️',scroll:'📜',potion:'🧪',poison:'☠️',
+    lantern:'🏮',mirror:'🪞',clock:'⏰',compass:'🧭',
+    bag:'🎒',hat:'🎩',mask:'🎭',ring:'💍',
+    // Atmosphere
+    dark:'🌑',shadow:'👤',light:'💡',glow:'✨',
+    danger:'⚠️',safe:'✅',secret:'🤫',trap:'🪤',
   },
 
   // ── Emoji Asset Registry ──────────────────────────────────────
@@ -377,18 +393,37 @@ const SVGRenderer = {
   },
 
   _guessEmoji(id) {
+    const lower = id.toLowerCase();
+    // Direct match
+    if (this.KEYWORD_EMOJI[lower]) return this.KEYWORD_EMOJI[lower];
+    // Split by hyphen and try each part
+    const parts = lower.split(/[-_]/);
+    for (const part of parts) {
+      if (this.KEYWORD_EMOJI[part]) return this.KEYWORD_EMOJI[part];
+    }
+    // Substring match
     for (const [keyword, emoji] of Object.entries(this.KEYWORD_EMOJI)) {
-      if (id.includes(keyword)) return emoji;
+      if (lower.includes(keyword)) return emoji;
+    }
+    // Last resort: guess from first meaningful part
+    for (const part of parts) {
+      if (part.length > 3) {
+        for (const [keyword, emoji] of Object.entries(this.KEYWORD_EMOJI)) {
+          if (keyword.startsWith(part.substring(0, 4))) return emoji;
+        }
+      }
     }
     return '❓';
   },
 
   _guessLayer(id) {
-    if (id.startsWith('bg-')) return 'background';
-    const objWords = ['table','chest','torch','sword','potion','door','key','book','barrel','rope','chair','bed','candle','coin','gem','ring','crown','shield','bow','axe','hammer','wand','staff','dagger','food','bread','meat','apple','cheese','bone'];
-    for (const w of objWords) { if (id.includes(w)) return 'object'; }
-    const fxWords = ['fire','fog','smoke','sparkle','rain','snow','glow','light','dark','magic','effect','aura','wind','dust'];
-    for (const w of fxWords) { if (id.includes(w)) return 'effect'; }
+    const lower = id.toLowerCase();
+    if (lower.startsWith('bg-')) return 'background';
+    const parts = lower.split(/[-_]/);
+    const objWords = ['table','chest','torch','sword','potion','door','key','book','barrel','rope','chair','bed','candle','coin','gem','ring','crown','shield','bow','axe','hammer','wand','staff','dagger','food','bread','meat','apple','cheese','bone','map','scroll','lantern','mirror','bag','hat','mask','lantern','mushroom','poison'];
+    for (const w of objWords) { if (parts.includes(w) || lower.includes(w)) return 'object'; }
+    const fxWords = ['fire','fog','smoke','sparkle','rain','snow','glow','light','dark','magic','effect','aura','wind','dust','shadow','glow','danger','secret'];
+    for (const w of fxWords) { if (parts.includes(w) || lower.includes(w)) return 'effect'; }
     return 'character';
   },
 
