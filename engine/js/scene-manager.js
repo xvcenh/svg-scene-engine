@@ -197,9 +197,34 @@ const SceneManager = {
       return;
     }
 
-    // Determine final position
-    const targetX = asset.toX !== undefined ? asset.toX : (asset.x || 50);
+    // Determine final position with auto-spacing
+    let targetX = asset.toX !== undefined ? asset.toX : (asset.x || 50);
     const targetY = asset.y || (meta.layer === 'effect' ? 50 : 60);
+
+    // Auto-space: avoid overlapping existing entities
+    if (meta.layer === 'character' || meta.layer === 'object') {
+      const MIN_GAP = 10; // minimum % gap between entities
+      const container = SVGRenderer.container;
+      if (container) {
+        const existing = container.querySelectorAll('.scene-entity');
+        let attempts = 0;
+        while (attempts < 10) {
+          let overlap = false;
+          for (const el of existing) {
+            const elX = parseFloat(el.style.left);
+            if (Math.abs(elX - targetX) < MIN_GAP && el.dataset.id !== asset.id) {
+              overlap = true;
+              break;
+            }
+          }
+          if (!overlap) break;
+          // Shift right, wrap around at 90%
+          targetX = targetX + MIN_GAP;
+          if (targetX > 90) targetX = 10;
+          attempts++;
+        }
+      }
+    }
 
     const assetData = {
       id: asset.id,

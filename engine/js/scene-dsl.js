@@ -41,6 +41,15 @@ const SceneDSL = {
 - idle（默认站立）, surprised（惊讶❗）, eating（吃🍖）, drinking（喝🍺）
 - casting（施法✨发光）, fighting（战斗⚔️抖动）, look_left（向左看）, spit_drink（喷酒💦）
 
+## 物品状态（也可用于update中的state字段）
+- overturn/overturned（翻倒💫，如推翻桌子）, shatter/broken（破碎💥💔）
+- open（开锁🔓）, closed（关闭🔒）, empty（空了🫗）
+- lit（点燃🔥）, extinguished（熄灭💨）
+- push（推飞💨）
+
+## 重要：remove_assets会移除场景中所有匹配ID的实体
+如果场景中有多个同ID实体（如4只cat），用 remove_assets:["cat"] 会全部移除。
+
 ## 输出格式要求
 你必须以纯JSON格式回复，不要包含markdown代码块标记。严格使用以下JSON结构：
 {

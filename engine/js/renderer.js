@@ -94,6 +94,17 @@ const SVGRenderer = {
     fighting:   '💥',
     look_left:  '👈',
     spit_drink: '💦',
+    // Object states
+    overturn:   '💫',
+    overturned: '💫',
+    shatter:    '💥',
+    broken:     '💔',
+    push:       '💨',
+    open:       '🔓',
+    closed:     '🔒',
+    empty:      '🫗',
+    lit:        '🔥',
+    extinguished:'💨',
   },
 
   async init() {
@@ -300,6 +311,22 @@ const SVGRenderer = {
       .anim-eating { animation: eating 0.8s ease-in-out infinite; }
       .anim-casting { animation: casting 1.2s ease-in-out infinite; }
       .anim-idle { animation: idle 3s ease-in-out infinite; }
+      .anim-overturn {
+        animation: overturn 0.6s ease forwards;
+        transform-origin: left bottom;
+      }
+      @keyframes overturn {
+        0% { transform: translate(-50%, -100%) rotate(0deg); }
+        100% { transform: translate(-50%, -100%) rotate(90deg); opacity: 0.6; }
+      }
+      .anim-shatter {
+        animation: shatter 0.5s ease forwards;
+      }
+      @keyframes shatter {
+        0% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+        50% { transform: translate(-50%, -100%) scale(1.3); opacity: 0.8; }
+        100% { transform: translate(-50%, -100%) scale(0.5); opacity: 0; }
+      }
 
       /* Particle effects */
       .particle {
@@ -514,13 +541,15 @@ const SVGRenderer = {
 
   removeAsset(assetId, animation = 'fadeOut') {
     if (!this.container) return;
-    const el = this.container.querySelector(`[data-id="${assetId}"]`);
-    if (!el) return;
+    const els = this.container.querySelectorAll(`[data-id="${assetId}"]`);
+    if (els.length === 0) return;
 
     delete this.characterStates[assetId];
-    el.classList.add(`anim-${animation}`);
-    el.addEventListener('animationend', () => el.remove(), { once: true });
-    EventBus.emit('asset:removed', { id: assetId });
+    els.forEach(el => {
+      el.classList.add(`anim-${animation}`);
+      el.addEventListener('animationend', () => el.remove(), { once: true });
+    });
+    EventBus.emit('asset:removed', { id: assetId, count: els.length });
   },
 
   updateAsset(assetId, options = {}) {
@@ -570,7 +599,10 @@ const SVGRenderer = {
 
     const animMap = {
       surprised: 'shock', fighting: 'fighting', eating: 'eating',
-      casting: 'casting', idle: 'idle'
+      casting: 'casting', idle: 'idle',
+      overturn: 'overturn', overturned: 'overturn',
+      shatter: 'shatter', broken: 'shatter',
+      slide: 'walkIn', push: 'walkIn',
     };
     if (animMap[state]) el.classList.add(`anim-${animMap[state]}`);
 
