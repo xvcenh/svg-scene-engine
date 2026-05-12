@@ -201,6 +201,7 @@ const SceneManager = {
     // Determine final position with auto-spacing
     let targetX = asset.toX !== undefined ? asset.toX : (asset.x || 50);
     const targetY = asset.y || (meta.layer === 'effect' ? 50 : 60);
+    const instanceKey = `${asset.id}#${++this._instanceCounter}`;
 
     // Auto-space: avoid overlapping entities in the same layer
     if (meta.layer === 'character' || meta.layer === 'object') {
@@ -225,8 +226,6 @@ const SceneManager = {
         attempts++;
       }
     }
-
-    const instanceKey = `${asset.id}#${++this._instanceCounter}`;
     const assetData = {
       id: asset.id,
       _instanceKey: instanceKey,
