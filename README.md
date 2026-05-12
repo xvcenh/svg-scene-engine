@@ -53,22 +53,19 @@ svg-scene-engine/
 ├── engine/
 │   └── js/
 │       ├── core.js         # Engine initialization & scene API
-│       ├── renderer.js     # SVG rendering, layers, animations
+│       ├── renderer.js     # Emoji-based rendering, layers, animations
 │       ├── scene-manager.js # Scene DSL, diff, asset matching
 │       └── scene-dsl.js    # LLM instructions & scene examples
 ├── shared/
 │   └── js/
 │       ├── event-bus.js    # Decoupled event system
-│       ├── llm-client.js   # LLM API client (OpenAI-compatible)
-│       └── utils.js        # Shared utilities
+│       └── llm-client.js   # LLM API client (OpenAI-compatible)
 ├── assets/
-│   └── svg/
+│   └── svg/               # 37 SVG assets (preserved, renderer uses emoji)
 │       ├── backgrounds/    # 15 background scenes
 │       ├── characters/     # 14 character sprites
 │       ├── objects/         # 5 interactive objects
 │       └── effects/        # 3 visual effects
-├── data/
-│   └── default-scenes.json # Example scene configurations
 └── docs/
     ├── getting-started.md
     ├── asset-spec.md
@@ -116,7 +113,6 @@ The engine uses a JSON-based Scene Description Language:
 ```javascript
 // 1. Include the scripts
 <script src="shared/js/event-bus.js"></script>
-<script src="shared/js/utils.js"></script>
 <script src="shared/js/llm-client.js"></script>
 <script src="engine/js/scene-dsl.js"></script>
 <script src="engine/js/renderer.js"></script>
