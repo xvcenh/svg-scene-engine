@@ -194,6 +194,451 @@ const SVGRenderer = {
     'vampire':       { base: '🧛', scale: 2.0, filter: 'brightness(0.7)', overlays: ['🦇','🩸','🌙'], shadow: true, glow: true, label: '吸血鬼' },
   },
 
+  // ── Semantic compositions (common objects → visual recipe) ────
+  // Layout types: overlays=circle around base, ring=stone ring, top=above, side=left-right
+  SEMANTIC: {
+    // ── Structures ───────────────────────────────────────────
+    'well':      { base:'🕳️', ring:['🪨','🪨','🪨','🪨','🪨','🪨'], label:'井' },
+    'fountain':  { base:'💧', ring:['🪨','🪨','🪨','🪨'], overlays:['💧','💧'], label:'喷泉' },
+    'campfire':  { base:'🔥', ring:['🪵','🪵','🪵'], overlays:['✨','✨'], label:'篝火' },
+    'altar':     { base:'🪨', top:['🕯️','🕯️'], overlays:['✨'], label:'祭坛' },
+    'forge':     { base:'🔥', top:['🔨','⚔️'], label:'铁匠铺' },
+    'cauldron':  { base:'🫕', top:['💨','💨','💨'], label:'大锅' },
+    'throne':    { base:'🪑', top:['👑'], overlays:['✨'], label:'王座' },
+    'statue':    { base:'🗿', ring:['🪨','🪨'], label:'雕像' },
+    'pillar':    { base:'🏛️', label:'石柱' },
+    'gate':      { base:'🚪', top:['🏰'], label:'大门' },
+    'bridge':    { base:'🌉', label:'桥' },
+    'grave':     { base:'🪦', label:'墓碑' },
+    'tomb':      { base:'🪦', ring:['💀','💀','💀'], label:'古墓' },
+    'crypt':     { base:'🕳️', ring:['💀','💀'], overlays:['🕸️'], label:'地穴' },
+    'shrine':    { base:'⛩️', top:['✨','✨'], label:'神龛' },
+    'tent':      { base:'⛺', label:'帐篷' },
+    'cart':      { base:'🛒', label:'推车' },
+    'wagon':     { base:'🛒', label:'马车' },
+    'ladder':    { base:'🪜', label:'梯子' },
+    'sign':      { base:'🪧', label:'告示牌' },
+    'stocks':    { base:'🪵', label:'刑具' },
+    'cage':      { base:'🔒', ring:['🔩','🔩','🔩'], label:'笼子' },
+    'cell':      { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'牢房' },
+    'pier':      { base:'🪵', top:['⚓'], label:'码头' },
+    'raft':      { base:'🪵', ring:['🪵','🪵','🪵'], label:'木筏' },
+    'boat':      { base:'⛵', label:'小船' },
+    'ship':      { base:'🚢', label:'大船' },
+    'dock':      { base:'⚓', top:['🪵','🪵'], label:'码头' },
+    'scaffold':  { base:'🪵', top:['🪢'], label:'绞刑架' },
+    'gallows':   { base:'🪵', top:['🪢','💀'], label:'绞刑台' },
+    'pillory':   { base:'🪵', label:'枷锁' },
+    'pyre':      { base:'🔥', ring:['🪵','🪵','🪵','🪵'], label:'火刑台' },
+    'obelisk':   { base:'🗿', top:['✨'], label:'方尖碑' },
+    'totem':     { base:'🗿', top:['🔥'], label:'图腾' },
+    'banner':    { base:'🚩', label:'旗帜' },
+    'flag':      { base:'🚩', label:'旗帜' },
+    'torch':     { base:'🔥', label:'火把' },
+    'lamp':      { base:'🏮', label:'灯' },
+    'chandelier':{ base:'🪔', top:['✨','✨'], label:'吊灯' },
+    'candelabra':{ base:'🕯️', label:'烛台' },
+    'bell':      { base:'🔔', label:'钟' },
+    'bellows':   { base:'🪭', label:'风箱' },
+    'anvil':     { base:'🔨', label:'铁砧' },
+    'mill':      { base:'🏗️', label:'磨坊' },
+    'windmill':  { base:'🏗️', label:'风车' },
+    'stable':    { base:'🐴', label:'马厩' },
+    'kennel':    { base:'🐕', label:'狗窝' },
+    'coop':      { base:'🐔', label:'鸡窝' },
+    'nest':      { base:'🪹', top:['🥚','🥚'], label:'鸟巢' },
+    'hive':      { base:'🍯', top:['🐝','🐝'], label:'蜂巢' },
+    'den':       { base:'🕳️', top:['💀'], label:'兽穴' },
+    'burrow':    { base:'🕳️', top:['🐰'], label:'兔窝' },
+    'pond':      { base:'💧', ring:['🌿','🌿','🌿'], label:'池塘' },
+    'pool':      { base:'💧', ring:['🪨','🪨','🪨'], label:'水池' },
+    'spring':    { base:'💧', ring:['🪨','🪨'], label:'泉水' },
+    'oasis':     { base:'🌴', ring:['💧','💧'], label:'绿洲' },
+    'stump':     { base:'🪵', label:'树桩' },
+    'bush':      { base:'🌿', ring:['🌿','🌿'], label:'灌木' },
+    'thicket':   { base:'🌿', ring:['🌿','🌿','🌿'], label:'树丛' },
+    'rock':      { base:'🪨', label:'岩石' },
+    'boulder':   { base:'🪨', scale:1.5, label:'巨石' },
+    'mushroom':  { base:'🍄', ring:['🍄','🍄'], label:'蘑菇丛' },
+    'flowers':   { base:'🌸', ring:['🌼','🌻','🌷'], label:'花丛' },
+    'herb':      { base:'🌿', label:'草药' },
+    'vine':      { base:'🌱', label:'藤蔓' },
+    'web':       { base:'🕸️', label:'蛛网' },
+    'cocoon':    { base:'🪱', label:'虫茧' },
+    'corpse':    { base:'💀', label:'尸体' },
+    'skeleton':  { base:'💀', ring:['🦴','🦴','🦴'], label:'骷髅' },
+    'bones':     { base:'🦴', ring:['🦴','🦴'], label:'骸骨' },
+    'rubble':    { base:'🪨', ring:['🧱','🧱'], label:'瓦砾' },
+    'debris':    { base:'🪵', ring:['🍂','🍂'], label:'残骸' },
+    'chest':     { base:'📦', top:['✨'], label:'宝箱' },
+    'barrel':    { base:'🛢️', label:'木桶' },
+    'crate':     { base:'📦', label:'箱子' },
+    'sack':      { base:'🎒', label:'麻袋' },
+    'bag':       { base:'🎒', label:'袋子' },
+    'coffin':    { base:'⚰️', label:'棺材' },
+    'casket':    { base:'⚰️', top:['✨'], label:'华丽棺材' },
+    'mirror':    { base:'🪞', label:'镜子' },
+    'painting':  { base:'🖼️', label:'画' },
+    'tapestry':  { base:'🖼️', label:'挂毯' },
+    'carpet':    { base:'🧶', label:'地毯' },
+    'curtain':   { base:'🪟', label:'帘子' },
+    'door':      { base:'🚪', label:'门' },
+    'window':    { base:'🪟', label:'窗' },
+    'wall':      { base:'🧱', label:'墙' },
+    'floor':     { base:'⬛', label:'地板' },
+    'ceiling':   { base:'🔲', label:'天花板' },
+    'roof':      { base:'🏠', label:'屋顶' },
+    'stairs':    { base:'🪜', label:'楼梯' },
+    'ramp':      { base:'📐', label:'斜坡' },
+    'pit':       { base:'🕳️', label:'深坑' },
+    'hole':      { base:'🕳️', label:'洞' },
+    'tunnel':    { base:'🕳️', ring:['🧱','🧱','🧱'], label:'隧道' },
+    'passage':   { base:'🚪', label:'通道' },
+    'corridor':  { base:'🚪', label:'走廊' },
+    'room':      { base:'🚪', label:'房间' },
+    'chamber':   { base:'🚪', label:'密室' },
+    'vault':     { base:'🔒', label:'金库' },
+    'treasury':  { base:'💰', top:['👑','💎'], label:'宝库' },
+    'library':   { base:'📚', label:'图书馆' },
+    'study':     { base:'📖', label:'书房' },
+    'workshop':  { base:'🔨', label:'工坊' },
+    'laboratory':{ base:'🧪', top:['⚗️'], label:'实验室' },
+    'kitchen':   { base:'🍳', label:'厨房' },
+    'pantry':    { base:'🫙', label:'储藏室' },
+    'cellar':    { base:'🍷', label:'酒窖' },
+    'dungeon':   { base:'⛓️', ring:['💀','💀'], label:'地牢' },
+    'prison':    { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'监狱' },
+    'arena':     { base:'🏟️', label:'竞技场' },
+    'colosseum': { base:'🏟️', label:'斗兽场' },
+    'market':    { base:'🏪', label:'市场' },
+    'shop':      { base:'🏪', label:'商店' },
+    'inn':       { base:'🏨', label:'旅店' },
+    'tavern':    { base:'🍺', label:'酒馆' },
+    'pub':       { base:'🍻', label:'酒吧' },
+    'temple':    { base:'⛪', label:'神殿' },
+    'church':    { base:'⛪', label:'教堂' },
+    'chapel':    { base:'⛪', label:'小教堂' },
+    'cathedral': { base:'⛪', label:'大教堂' },
+    'monastery': { base:'⛪', label:'修道院' },
+    'tower':     { base:'🗼', label:'塔' },
+    'castle':    { base:'🏰', label:'城堡' },
+    'palace':    { base:'🏯', label:'宫殿' },
+    'fortress':  { base:'🏰', label:'要塞' },
+    'keep':      { base:'🏰', label:'主堡' },
+    'wall':      { base:'🧱', label:'城墙' },
+    'rampart':   { base:'🧱', label:'壁垒' },
+    'moat':      { base:'💧', label:'护城河' },
+    'garden':    { base:'🏡', label:'花园' },
+    'park':      { base:'🏞️', label:'公园' },
+    'cemetery':  { base:'⚰️', ring:['🪦','🪦','🪦'], label:'墓地' },
+    'graveyard': { base:'🪦', ring:['💀','💀','💀'], label:'坟场' },
+    'battlefield':{ base:'⚔️', ring:['💀','💀','💀','💀'], label:'战场' },
+    'ruins':     { base:'🏛️', ring:['🧱','🧱','🧱'], label:'废墟' },
+    'wreckage':  { base:'🪵', ring:['💥','💥'], label:'残骸' },
+    'camp':      { base:'🏕️', label:'营地' },
+    'base':      { base:'🏕️', label:'基地' },
+    'outpost':   { base:'🗼', label:'哨站' },
+    'watchtower':{ base:'🗼', top:['🔭'], label:'瞭望塔' },
+    'lighthouse':{ base:'🗼', top:['💡'], label:'灯塔' },
+    'windmill':  { base:'🏗️', label:'风车' },
+    'watermill': { base:'🏗️', top:['💧'], label:'水车' },
+    'mine':      { base:'⛏️', label:'矿井' },
+    'quarry':    { base:'⛏️', ring:['🪨','🪨'], label:'采石场' },
+    'farm':      { base:'🌾', label:'农场' },
+    'field':     { base:'🌾', label:'田地' },
+    'vineyard':  { base:'🍇', label:'葡萄园' },
+    'orchard':   { base:'🍎', label:'果园' },
+    'pasture':   { base:'🐑', label:'牧场' },
+    'meadow':    { base:'🌾', label:'草地' },
+    'marsh':     { base:'🌿', ring:['💧','💧'], label:'沼泽' },
+    'swamp':     { base:'🌿', ring:['💧','💧','💀'], label:'湿地' },
+    'desert':    { base:'🏜️', label:'沙漠' },
+    'dune':      { base:'🏜️', label:'沙丘' },
+    'cliff':     { base:'🪨', label:'悬崖' },
+    'canyon':    { base:'🪨', ring:['🪨','🪨'], label:'峡谷' },
+    'ravine':    { base:'🕳️', ring:['🪨','🪨'], label:'深谷' },
+    'volcano':   { base:'🌋', label:'火山' },
+    'glacier':   { base:'🧊', label:'冰川' },
+    'iceberg':   { base:'🧊', label:'冰山' },
+    'waterfall': { base:'💧', top:['💧','💧'], label:'瀑布' },
+    'rapids':    { base:'🌊', label:'急流' },
+    'whirlpool': { base:'🌀', label:'漩涡' },
+    'island':    { base:'🏝️', label:'岛屿' },
+    'peninsula': { base:'🏝️', label:'半岛' },
+    'reef':      { base:'🪸', label:'珊瑚礁' },
+    'lagoon':    { base:'💧', ring:['🌴','🌴'], label:'泻湖' },
+    'harbor':    { base:'⚓', label:'港口' },
+    'port':      { base:'🚢', label:'码头' },
+    'lighthouse':{ base:'🗼', top:['💡'], label:'灯塔' },
+    'signal':    { base:'🔥', label:'烽火' },
+    'beacon':    { base:'🔥', top:['✨'], label:'灯塔' },
+    'waypoint':  { base:'🚩', label:'路标' },
+    'marker':    { base:'🪧', label:'标记' },
+    'crossroads':{ base:'🛤️', label:'十字路口' },
+    'junction':  { base:'🛤️', label:'岔路' },
+    'fork':      { base:'🛤️', label:'岔口' },
+    'path':      { base:'🛤️', label:'小路' },
+    'trail':     { base:'🛤️', label:'小径' },
+    'road':      { base:'🛣️', label:'大路' },
+    'highway':   { base:'🛣️', label:'公路' },
+    'tunnel':    { base:'🕳️', label:'隧道' },
+    'mine':      { base:'⛏️', label:'矿洞' },
+    'shaft':     { base:'🕳️', label:'竖井' },
+    'pit':       { base:'🕳️', label:'陷阱坑' },
+    'trap':      { base:'🪤', label:'陷阱' },
+    'snare':     { base:'🪤', label:'圈套' },
+    'ward':      { base:'✨', label:'结界' },
+    'barrier':   { base:'🛡️', label:'屏障' },
+    'rune':      { base:'✨', label:'符文' },
+    'glyph':     { base:'✨', label:'符文' },
+    'circle':    { base:'⭕', label:'法阵' },
+    'pentagram': { base:'⭐', label:'五芒星' },
+    'sigil':     { base:'✨', label:'印记' },
+    'portal':    { base:'🌀', label:'传送门' },
+    'gate':      { base:'🚪', label:'大门' },
+    'archway':   { base:'🏛️', label:'拱门' },
+    'entrance':  { base:'🚪', label:'入口' },
+    'exit':      { base:'🚪', label:'出口' },
+    'threshold': { base:'🚪', label:'门槛' },
+    'foyer':     { base:'🚪', label:'门厅' },
+    'lobby':     { base:'🚪', label:'大厅' },
+    'hall':      { base:'🏛️', label:'大厅' },
+    'gallery':   { base:'🖼️', label:'画廊' },
+    'auditorium':{ base:'🏛️', label:'礼堂' },
+    'throne':    { base:'👑', label:'王座' },
+    'seat':      { base:'🪑', label:'座位' },
+    'bench':     { base:'🪑', label:'长凳' },
+    'stool':     { base:'🪑', label:'凳子' },
+    'table':     { base:'🪑', label:'桌子' },
+    'desk':      { base:'🪑', label:'书桌' },
+    'counter':   { base:'🪑', label:'柜台' },
+    'shelf':     { base:'📚', label:'书架' },
+    'bookcase':  { base:'📚', label:'书柜' },
+    'cabinet':   { base:'🗄️', label:'柜子' },
+    'wardrobe':  { base:'🚪', label:'衣柜' },
+    'dresser':   { base:'🗄️', label:'梳妆台' },
+    'bed':       { base:'🛏️', label:'床' },
+    'cot':       { base:'🛏️', label:'简易床' },
+    'hammock':   { base:'🛏️', label:'吊床' },
+    'pillow':    { base:'🛋️', label:'枕头' },
+    'blanket':   { base:'🧣', label:'毯子' },
+    'rug':       { base:'🧶', label:'地毯' },
+    'mat':       { base:'🧶', label:'垫子' },
+    'basket':    { base:'🧺', label:'篮子' },
+    'bucket':    { base:'🪣', label:'水桶' },
+    'bowl':      { base:'🥣', label:'碗' },
+    'plate':     { base:'🍽️', label:'盘子' },
+    'cup':       { base:'☕', label:'杯子' },
+    'mug':       { base:'🍺', label:'马克杯' },
+    'goblet':    { base:'🏆', label:'酒杯' },
+    'chalice':   { base:'🏆', label:'圣杯' },
+    'jug':       { base:'🏺', label:'水壶' },
+    'vase':      { base:'🏺', label:'花瓶' },
+    'jar':       { base:'🫙', label:'罐子' },
+    'bottle':    { base:'🍾', label:'瓶子' },
+    'flask':     { base:'🧪', label:'烧瓶' },
+    'vial':      { base:'🧪', label:'试管' },
+    'potion':    { base:'🧪', label:'药水' },
+    'philtre':   { base:'🧪', label:'魔药' },
+    'elixir':    { base:'🧪', label:'灵药' },
+    'herbs':     { base:'🌿', label:'草药' },
+    'ingredients':{ base:'🧪', label:'材料' },
+    'reagents':  { base:'🧪', label:'试剂' },
+    'scroll':    { base:'📜', label:'卷轴' },
+    'tome':      { base:'📖', label:'典籍' },
+    'grimoire':  { base:'📖', label:'魔法书' },
+    'journal':   { base:'📓', label:'日记' },
+    'letter':    { base:'✉️', label:'信件' },
+    'note':      { base:'📝', label:'纸条' },
+    'map':       { base:'🗺️', label:'地图' },
+    'compass':   { base:'🧭', label:'指南针' },
+    'key':       { base:'🔑', label:'钥匙' },
+    'lock':      { base:'🔒', label:'锁' },
+    'chain':     { base:'⛓️', label:'锁链' },
+    'rope':      { base:'🪢', label:'绳子' },
+    'ladder':    { base:'🪜', label:'梯子' },
+    'rope':      { base:'🪢', label:'绳索' },
+    'grapple':   { base:'🪝', label:'抓钩' },
+    'hook':      { base:'🪝', label:'钩子' },
+    'pulley':    { base:'⚙️', label:'滑轮' },
+    'lever':     { base:'⚙️', label:'杠杆' },
+    'switch':    { base:'🔘', label:'开关' },
+    'button':    { base:'🔴', label:'按钮' },
+    'crank':     { base:'⚙️', label:'曲柄' },
+    'gear':      { base:'⚙️', label:'齿轮' },
+    'spring':    { base:'🔧', label:'弹簧' },
+    'mechanism': { base:'⚙️', label:'机关' },
+    'device':    { base:'⚙️', label:'装置' },
+    'machine':   { base:'⚙️', label:'机器' },
+    'contraption':{ base:'⚙️', label:'奇妙装置' },
+    'gadget':    { base:'🔧', label:'小工具' },
+    'tool':      { base:'🔧', label:'工具' },
+    'instrument':{ base:'🔧', label:'器具' },
+    'apparatus': { base:'⚙️', label:'器械' },
+
+    // ── Chinese keywords (中文关键词) ──────────────────────────
+    '井':    { base:'🕳️', ring:['🪨','🪨','🪨','🪨','🪨','🪨'], label:'井' },
+    '泉水':  { base:'💧', ring:['🪨','🪨'], label:'泉水' },
+    '喷泉':  { base:'💧', ring:['🪨','🪨','🪨','🪨'], label:'喷泉' },
+    '祭坛':  { base:'🪨', top:['🕯️','🕯️'], label:'祭坛' },
+    '篝火':  { base:'🔥', ring:['🪵','🪵','🪵'], label:'篝火' },
+    '铁匠铺':{ base:'🔥', top:['🔨'], label:'铁匠铺' },
+    '王座':  { base:'🪑', top:['👑'], label:'王座' },
+    '雕像':  { base:'🗿', ring:['🪨','🪨'], label:'雕像' },
+    '石柱':  { base:'🏛️', label:'石柱' },
+    '大门':  { base:'🚪', top:['🏰'], label:'大门' },
+    '桥':    { base:'🌉', label:'桥' },
+    '墓碑':  { base:'🪦', label:'墓碑' },
+    '古墓':  { base:'🪦', ring:['💀','💀','💀'], label:'古墓' },
+    '神龛':  { base:'⛩️', top:['✨','✨'], label:'神龛' },
+    '帐篷':  { base:'⛺', label:'帐篷' },
+    '梯子':  { base:'🪜', label:'梯子' },
+    '笼子':  { base:'🔒', ring:['🔩','🔩','🔩'], label:'笼子' },
+    '牢房':  { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'牢房' },
+    '木筏':  { base:'🪵', ring:['🪵','🪵','🪵'], label:'木筏' },
+    '小船':  { base:'⛵', label:'小船' },
+    '大船':  { base:'🚢', label:'大船' },
+    '码头':  { base:'⚓', top:['🪵','🪵'], label:'码头' },
+    '绞刑架':{ base:'🪵', top:['🪢'], label:'绞刑架' },
+    '火刑台':{ base:'🔥', ring:['🪵','🪵','🪵','🪵'], label:'火刑台' },
+    '方尖碑':{ base:'🗿', top:['✨'], label:'方尖碑' },
+    '图腾':  { base:'🗿', top:['🔥'], label:'图腾' },
+    '旗帜':  { base:'🚩', label:'旗帜' },
+    '火把':  { base:'🔥', label:'火把' },
+    '灯笼':  { base:'🏮', label:'灯笼' },
+    '吊灯':  { base:'🪔', top:['✨','✨'], label:'吊灯' },
+    '烛台':  { base:'🕯️', label:'烛台' },
+    '钟':    { base:'🔔', label:'钟' },
+    '铁砧':  { base:'🔨', label:'铁砧' },
+    '磨坊':  { base:'🏗️', label:'磨坊' },
+    '风车':  { base:'🏗️', label:'风车' },
+    '马厩':  { base:'🐴', label:'马厩' },
+    '鸟巢':  { base:'🪹', top:['🥚','🥚'], label:'鸟巢' },
+    '蜂巢':  { base:'🍯', top:['🐝','🐝'], label:'蜂巢' },
+    '兽穴':  { base:'🕳️', top:['💀'], label:'兽穴' },
+    '池塘':  { base:'💧', ring:['🌿','🌿','🌿'], label:'池塘' },
+    '水池':  { base:'💧', ring:['🪨','🪨','🪨'], label:'水池' },
+    '灌木':  { base:'🌿', ring:['🌿','🌿'], label:'灌木' },
+    '树丛':  { base:'🌿', ring:['🌿','🌿','🌿'], label:'树丛' },
+    '岩石':  { base:'🪨', label:'岩石' },
+    '巨石':  { base:'🪨', scale:1.5, label:'巨石' },
+    '蘑菇丛':{ base:'🍄', ring:['🍄','🍄'], label:'蘑菇丛' },
+    '花丛':  { base:'🌸', ring:['🌼','🌻','🌷'], label:'花丛' },
+    '草药':  { base:'🌿', label:'草药' },
+    '藤蔓':  { base:'🌱', label:'藤蔓' },
+    '蛛网':  { base:'🕸️', label:'蛛网' },
+    '骷髅':  { base:'💀', ring:['🦴','🦴','🦴'], label:'骷髅' },
+    '骸骨':  { base:'🦴', ring:['🦴','🦴'], label:'骸骨' },
+    '瓦砾':  { base:'🪨', ring:['🧱','🧱'], label:'瓦砾' },
+    '残骸':  { base:'🪵', ring:['🍂','🍂'], label:'残骸' },
+    '宝箱':  { base:'📦', top:['✨'], label:'宝箱' },
+    '木桶':  { base:'🛢️', label:'木桶' },
+    '箱子':  { base:'📦', label:'箱子' },
+    '麻袋':  { base:'🎒', label:'麻袋' },
+    '棺材':  { base:'⚰️', label:'棺材' },
+    '镜子':  { base:'🪞', label:'镜子' },
+    '画':    { base:'🖼️', label:'画' },
+    '挂毯':  { base:'🖼️', label:'挂毯' },
+    '地毯':  { base:'🧶', label:'地毯' },
+    '门':    { base:'🚪', label:'门' },
+    '窗':    { base:'🪟', label:'窗' },
+    '墙':    { base:'🧱', label:'墙' },
+    '地板':  { base:'⬛', label:'地板' },
+    '天花板':{ base:'🔲', label:'天花板' },
+    '屋顶':  { base:'🏠', label:'屋顶' },
+    '楼梯':  { base:'🪜', label:'楼梯' },
+    '深坑':  { base:'🕳️', label:'深坑' },
+    '洞':    { base:'🕳️', label:'洞' },
+    '隧道':  { base:'🕳️', ring:['🧱','🧱','🧱'], label:'隧道' },
+    '通道':  { base:'🚪', label:'通道' },
+    '走廊':  { base:'🚪', label:'走廊' },
+    '密室':  { base:'🚪', label:'密室' },
+    '金库':  { base:'🔒', label:'金库' },
+    '宝库':  { base:'💰', top:['👑','💎'], label:'宝库' },
+    '图书馆':{ base:'📚', label:'图书馆' },
+    '书房':  { base:'📖', label:'书房' },
+    '工坊':  { base:'🔨', label:'工坊' },
+    '实验室':{ base:'🧪', top:['⚗️'], label:'实验室' },
+    '厨房':  { base:'🍳', label:'厨房' },
+    '酒窖':  { base:'🍷', label:'酒窖' },
+    '地牢':  { base:'⛓️', ring:['💀','💀'], label:'地牢' },
+    '监狱':  { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'监狱' },
+    '竞技场':{ base:'🏟️', label:'竞技场' },
+    '市场':  { base:'🏪', label:'市场' },
+    '商店':  { base:'🏪', label:'商店' },
+    '旅店':  { base:'🏨', label:'旅店' },
+    '酒馆':  { base:'🍺', label:'酒馆' },
+    '神殿':  { base:'⛪', label:'神殿' },
+    '教堂':  { base:'⛪', label:'教堂' },
+    '塔':    { base:'🗼', label:'塔' },
+    '城堡':  { base:'🏰', label:'城堡' },
+    '宫殿':  { base:'🏯', label:'宫殿' },
+    '要塞':  { base:'🏰', label:'要塞' },
+    '花园':  { base:'🏡', label:'花园' },
+    '墓地':  { base:'⚰️', ring:['🪦','🪦','🪦'], label:'墓地' },
+    '坟场':  { base:'🪦', ring:['💀','💀','💀'], label:'坟场' },
+    '战场':  { base:'⚔️', ring:['💀','💀','💀','💀'], label:'战场' },
+    '废墟':  { base:'🏛️', ring:['🧱','🧱','🧱'], label:'废墟' },
+    '营地':  { base:'🏕️', label:'营地' },
+    '哨站':  { base:'🗼', label:'哨站' },
+    '瞭望塔':{ base:'🗼', top:['🔭'], label:'瞭望塔' },
+    '灯塔':  { base:'🗼', top:['💡'], label:'灯塔' },
+    '矿井':  { base:'⛏️', label:'矿井' },
+    '采石场':{ base:'⛏️', ring:['🪨','🪨'], label:'采石场' },
+    '农场':  { base:'🌾', label:'农场' },
+    '田地':  { base:'🌾', label:'田地' },
+    '葡萄园':{ base:'🍇', label:'葡萄园' },
+    '果园':  { base:'🍎', label:'果园' },
+    '牧场':  { base:'🐑', label:'牧场' },
+    '草地':  { base:'🌾', label:'草地' },
+    '沼泽':  { base:'🌿', ring:['💧','💧'], label:'沼泽' },
+    '沙漠':  { base:'🏜️', label:'沙漠' },
+    '悬崖':  { base:'🪨', label:'悬崖' },
+    '峡谷':  { base:'🪨', ring:['🪨','🪨'], label:'峡谷' },
+    '火山':  { base:'🌋', label:'火山' },
+    '冰川':  { base:'🧊', label:'冰川' },
+    '瀑布':  { base:'💧', top:['💧','💧'], label:'瀑布' },
+    '漩涡':  { base:'🌀', label:'漩涡' },
+    '岛屿':  { base:'🏝️', label:'岛屿' },
+    '港口':  { base:'⚓', label:'港口' },
+    '十字路口':{ base:'🛤️', label:'十字路口' },
+    '岔路':  { base:'🛤️', label:'岔路' },
+    '小路':  { base:'🛤️', label:'小路' },
+    '陷阱':  { base:'🪤', label:'陷阱' },
+    '结界':  { base:'✨', label:'结界' },
+    '符文':  { base:'✨', label:'符文' },
+    '法阵':  { base:'⭕', label:'法阵' },
+    '传送门':{ base:'🌀', label:'传送门' },
+    '拱门':  { base:'🏛️', label:'拱门' },
+    '入口':  { base:'🚪', label:'入口' },
+    '出口':  { base:'🚪', label:'出口' },
+    '大厅':  { base:'🏛️', label:'大厅' },
+    '桌子':  { base:'🪑', label:'桌子' },
+    '椅子':  { base:'🪑', label:'椅子' },
+    '床':    { base:'🛏️', label:'床' },
+    '书架':  { base:'📚', label:'书架' },
+    '柜子':  { base:'🗄️', label:'柜子' },
+    '水桶':  { base:'🪣', label:'水桶' },
+    '碗':    { base:'🥣', label:'碗' },
+    '杯子':  { base:'☕', label:'杯子' },
+    '酒杯':  { base:'🏆', label:'酒杯' },
+    '圣杯':  { base:'🏆', label:'圣杯' },
+    '花瓶':  { base:'🏺', label:'花瓶' },
+    '罐子':  { base:'🫙', label:'罐子' },
+    '瓶子':  { base:'🍾', label:'瓶子' },
+    '药水':  { base:'🧪', label:'药水' },
+    '卷轴':  { base:'📜', label:'卷轴' },
+    '魔法书':{ base:'📖', label:'魔法书' },
+    '地图':  { base:'🗺️', label:'地图' },
+    '钥匙':  { base:'🔑', label:'钥匙' },
+    '锁':    { base:'🔒', label:'锁' },
+    '锁链':  { base:'⛓️', label:'锁链' },
+    '绳子':  { base:'🪢', label:'绳子' },
+    '齿轮':  { base:'⚙️', label:'齿轮' },
+    '机关':  { base:'⚙️', label:'机关' },
+    '工具':  { base:'🔧', label:'工具' },
+  },
+
   // ── State → emoji overlay ─────────────────────────────────────
   STATE_EMOJI: {
     idle:       null,
@@ -573,6 +1018,14 @@ const SVGRenderer = {
         pointer-events: none;
         animation: overlayFloat 3s ease-in-out infinite;
       }
+      .composed-ring {
+        animation: none;
+        transform: translate(-50%, -50%);
+      }
+      .composed-top {
+        animation: none;
+        transform: translate(-50%, -100%);
+      }
       .composed-glow .composed-base {
         filter: drop-shadow(0 0 15px currentColor) drop-shadow(0 4px 8px rgba(0,0,0,0.5));
       }
@@ -734,12 +1187,30 @@ const SVGRenderer = {
     const lower = id.toLowerCase().replace(/[-_]/g, ' ');
     const parts = lower.split(/\s+/);
 
+    // 1. Check boss presets (gem-serpent, fire-dragon, etc.)
     for (const [key, preset] of Object.entries(this.COMPOSITION_PRESETS)) {
       if (lower.includes(key) || key.split('-').every(p => parts.includes(p))) {
         return { ...preset, isComposition: true };
       }
     }
 
+    // 2. Check semantic compositions (well, fountain, altar, etc.)
+    //    Try exact match first, then partial match
+    if (this.SEMANTIC[lower]) {
+      return { ...this.SEMANTIC[lower], isComposition: true };
+    }
+    for (const part of parts) {
+      if (this.SEMANTIC[part]) {
+        return { ...this.SEMANTIC[part], isComposition: true };
+      }
+    }
+    // Also check Chinese: the raw id might be Chinese
+    const rawLower = id.toLowerCase();
+    if (this.SEMANTIC[rawLower]) {
+      return { ...this.SEMANTIC[rawLower], isComposition: true };
+    }
+
+    // 3. Build from keywords + modifiers
     let base = '❓';
     let scale = 1;
     let filters = [];
@@ -750,6 +1221,10 @@ const SVGRenderer = {
 
     for (const part of parts) {
       if (this.KEYWORD_EMOJI[part]) { base = this.KEYWORD_EMOJI[part]; break; }
+    }
+    // Also try raw id for Chinese keywords
+    if (base === '❓' && this.KEYWORD_EMOJI[id]) {
+      base = this.KEYWORD_EMOJI[id];
     }
 
     for (const part of parts) {
@@ -866,18 +1341,47 @@ const SVGRenderer = {
       <span class="entity-label">${composition.label || id}</span>`;
 
       const wrapper = el.querySelector('.composed-wrapper');
+      const baseSize = Math.min(cell.w, cell.h) * 0.8;
+
+      // Render ring items (tight circle around base, e.g. stones around a well)
+      if (composition.ring && composition.ring.length > 0) {
+        const ringRadius = baseSize * 0.55;
+        composition.ring.forEach((emoji, i) => {
+          const angle = (i / composition.ring.length) * Math.PI * 2 - Math.PI / 2;
+          const span = document.createElement('span');
+          span.className = 'composed-overlay composed-ring';
+          const sz = Math.round(baseSize * 0.3);
+          span.style.cssText = `left:${Math.cos(angle)*ringRadius}px;top:${Math.sin(angle)*ringRadius}px;font-size:${sz}px;opacity:0.9`;
+          span.textContent = emoji;
+          wrapper.appendChild(span);
+        });
+      }
+
+      // Render top items (positioned above the base)
+      if (composition.top && composition.top.length > 0) {
+        composition.top.forEach((emoji, i) => {
+          const span = document.createElement('span');
+          span.className = 'composed-overlay composed-top';
+          const sz = Math.round(baseSize * 0.35);
+          const xOff = (i - (composition.top.length - 1) / 2) * sz * 0.8;
+          span.style.cssText = `left:${xOff}px;top:${-baseSize*0.45}px;font-size:${sz}px;opacity:0.85`;
+          span.textContent = emoji;
+          wrapper.appendChild(span);
+        });
+      }
+
+      // Render free overlays (scattered around, e.g. sparkles)
       if (composition.overlays && composition.overlays.length > 0) {
-        const baseSize = Math.min(cell.w, cell.h) * 0.8;
         const overlayPositions = composition.overlays.map((ov, i) => {
           const angle = (i / composition.overlays.length) * Math.PI * 2 - Math.PI / 2;
-          const dist = baseSize * (0.4 + Math.random() * 0.2);
+          const dist = baseSize * (0.5 + Math.random() * 0.2);
           return { emoji: ov, x: Math.cos(angle) * dist, y: Math.sin(angle) * dist };
         });
         for (const pos of overlayPositions) {
           const span = document.createElement('span');
           span.className = 'composed-overlay';
-          const ovSize = Math.round(baseSize * 0.4 + Math.random() * baseSize * 0.15);
-          span.style.cssText = `left:${pos.x}px;top:${pos.y}px;font-size:${ovSize}px;opacity:${0.6 + Math.random() * 0.4}`;
+          const ovSize = Math.round(baseSize * 0.3 + Math.random() * baseSize * 0.1);
+          span.style.cssText = `left:${pos.x}px;top:${pos.y}px;font-size:${ovSize}px;opacity:${0.5 + Math.random() * 0.3}`;
           span.textContent = pos.emoji;
           wrapper.appendChild(span);
         }
