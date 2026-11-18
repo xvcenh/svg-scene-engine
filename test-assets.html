@@ -234,6 +234,7 @@
       log('Initializing SVG Scene Engine...', 'log-info');
       
       await SVGRenderer.init();
+      await SVGRenderer.library.preload();
       log(`Engine initialized. ${SVGRenderer.loadedCount} total assets registered.`, 'log-ok');
       log(`${Object.keys(SVGRenderer._svgCache).length} SVG files loaded into cache.`, 'log-ok');
 

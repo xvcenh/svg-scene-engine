@@ -135,9 +135,9 @@ const SVGRenderer = {
     this._injectStyles();
     this._loadAllAssets();
     const { loadLibrary } = await import("../../shared/js/asset-library.mjs");
-    await loadLibrary(this);
+    this.library = await loadLibrary(this);
     this._renderDefaultScene();
-    const svgCount = Object.keys(this._svgCache).length;
+    const svgCount = this._libraryManifest.length;
     console.log(`[HybridRenderer] ${this.loadedCount} assets (${svgCount} SVG + ${this.loadedCount - svgCount} emoji-only)`);
   },
 
@@ -427,9 +427,7 @@ const SVGRenderer = {
 
   _renderBackground(bgId) {
     const bg = this.EMOJI_MAP[bgId];
-    const svg = this._svgCache[bgId] || this._svgCache[this._svgAliases?.get(bgId)];
-    const hasSvg = Boolean(svg);
-    const label = bg?.label || bgId;
+    const hasSvg = this.library.has(bgId);
 
     const div = document.createElement('div');
     div.className = 'scene-bg';
@@ -439,8 +437,8 @@ const SVGRenderer = {
       div.style.background = `linear-gradient(180deg, ${colors.join(', ')})`;
       div.innerHTML = `
         <div class="bg-grid"></div>
-        <div class="bg-svg">${svg}</div>
-        <span class="bg-label">${label}</span>
+        <div class="bg-svg"></div>
+        <span class="bg-label"></span>
       `;
     } else if (bg) {
       const colors = bg.gradient || ['#1a1a2e','#16213e','#0f3460'];
@@ -448,13 +446,14 @@ const SVGRenderer = {
       div.innerHTML = `
         <div class="bg-grid"></div>
         <span class="bg-emoji">${bg.emoji}</span>
-        <span class="bg-label">${label}</span>
+        <span class="bg-label"></span>
       `;
     } else {
       div.style.background = 'linear-gradient(180deg, #0a0a1a, #1a1a2e)';
-      div.innerHTML = `<span class="bg-label">${bgId}</span>`;
+      div.innerHTML = `<span class="bg-label"></span>`;
     }
-
+    div.querySelector(".bg-label").textContent = bg?.label || bgId || "";
+    if (hasSvg) this.library.mount(div.querySelector(".bg-svg"), bgId, bg?.emoji || "");
     this.container.appendChild(div);
   },
 
@@ -472,8 +471,7 @@ const SVGRenderer = {
     const resolved = this._resolveAsset(id);
     if (!resolved) return;
 
-    const svg = this._svgCache[id] || this._svgCache[this._svgAliases?.get(id)];
-    const hasSvg = Boolean(svg);
+    const hasSvg = this.library.has(id);
     const meta = this.EMOJI_MAP[id];
     const state = data.state || this.characterStates[id] || 'idle';
 
@@ -485,8 +483,8 @@ const SVGRenderer = {
     const el = document.createElement('div');
     el.className = `scene-entity ${type}`;
     el.dataset.id = id;
-    el.style.left = (data.x || 50) + '%';
-    el.style.top = (data.y || (type === 'effect' ? 40 : 60)) + '%';
+    el.style.left = (data.x ?? 50) + '%';
+    el.style.top = (data.y ?? (type === 'effect' ? 40 : 60)) + '%';
 
     const layerSize = this.LAYER_SIZES[type] || this.LAYER_SIZES.character;
     const scale = data.scale || 1;
@@ -496,9 +494,9 @@ const SVGRenderer = {
       const w = Math.round(layerSize.w * scale);
       const h = Math.round(layerSize.h * scale);
       el.innerHTML = `
-        <div class="entity-svg" style="width:${w}px;height:${h}px">${svg}</div>
+        <div class="entity-svg" style="width:${w}px;height:${h}px"></div>
         ${type !== 'effect' ? '<div class="entity-shadow"></div>' : ''}
-        ${type !== 'effect' ? `<span class="entity-label">${resolved.tags?.[0] || id}</span>` : ''}
+        ${type !== 'effect' ? `<span class="entity-label"></span>` : ''}
       `;
     } else {
       // ── Emoji rendering (size matches layer type) ──
@@ -506,11 +504,15 @@ const SVGRenderer = {
       el.innerHTML = `
         <span class="entity-emoji" style="font-size:${fontSize}px">${emoji}</span>
         ${type !== 'effect' ? '<div class="entity-shadow"></div>' : ''}
-        ${type !== 'effect' ? `<span class="entity-label">${resolved.tags?.[0] || id}</span>` : ''}
+        ${type !== 'effect' ? `<span class="entity-label"></span>` : ''}
       `;
     }
 
     // Animation
+    const label = el.querySelector(".entity-label");
+    if (label) label.textContent = resolved.tags?.[0] || id;
+    if (hasSvg) this.library.mount(el.querySelector(".entity-svg"), id, emoji);
+
     if (data.animation) el.classList.add(`anim-${data.animation}`);
 
     // Walk-in from offscreen
@@ -519,7 +521,7 @@ const SVGRenderer = {
       el.style.transition = `left ${data.duration || 800}ms cubic-bezier(.4,0,.2,1)`;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          el.style.left = (data.x || 50) + '%';
+          el.style.left = (data.x ?? 50) + '%';
         });
       });
       setTimeout(() => { el.style.transition = ''; }, (data.duration || 800) + 50);

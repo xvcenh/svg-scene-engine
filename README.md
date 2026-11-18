@@ -21,7 +21,7 @@ User: "酒馆里，一位吟游诗人在弹奏，商人在喝酒"
 
 ## Features
 
-- **200 cataloged SVGs** across seven layers in the pinned asset-library submodule
+- **200 cataloged SVGs** across seven layers in the pinned asset-library submodule. Scenes fetch only the SVGs they use and reuse them on subsequent renders
 - **Hybrid rendering**: SVG when available, emoji fallback for everything else
 - **Smart emoji sizing**: Characters 48px, objects 32px, effects 64px — matches visual weight
 - **Dynamic assets**: LLM can use any ID (dragon, wolf, tree...), auto-matched to emoji
