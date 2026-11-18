@@ -19,7 +19,7 @@ const Engine = {
 
     this.ready = true;
     EventBus.emit('engine:ready');
-    console.log('[Engine] Ready. ' + SVGRenderer.loadedCount + ' SVG assets loaded.');
+    console.log('[Engine] Ready. ' + SVGRenderer.loadedCount + ' registered assets.');
   },
 
   /**

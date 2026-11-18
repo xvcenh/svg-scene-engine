@@ -15,31 +15,8 @@ const SceneDSL = {
 - æ²¡æœ‰SVGèµ„æºçš„ID â†’ è‡ªåŠ¨åŒ¹é…emojiæ¸²æŸ“ï¼ˆå¤§å°æŒ‰å±‚çº§åŒ¹é…ï¼‰
 - ä½ å¯ä»¥ä½¿ç”¨ä»»æ„IDï¼Œå¼•æ“Žä¼šè‡ªåŠ¨å¤„ç†ã€‚ä¼˜å…ˆä½¿ç”¨ä¸‹æ–¹åˆ—å‡ºçš„SVGèµ„æºï¼Œä½†é‡åˆ°æ²¡æœ‰çš„åœºæ™¯å†…å®¹æ—¶ï¼Œç›´æŽ¥ç”¨æè¿°æ€§IDå³å¯ï¼ˆå¦‚ dragonã€wolfã€treeã€door ç­‰ï¼‰
 
-## SVGèµ„æºåˆ—è¡¨ï¼ˆ70+ï¼Œä¼˜å…ˆä½¿ç”¨ï¼‰
-### èƒŒæ™¯ â€” ç”¨äºŽscene_update.background
-- bg-forest-day, bg-forest-night, bg-tavern-interior, bg-crossroad, bg-town-square, bg-cave-entrance, bg-market, bg-castle-gate, bg-castle, bg-cave, bg-forest, bg-mountain, bg-river, bg-tavern, bg-village
-- bg-arena, bg-beach, bg-cathedral, bg-desert, bg-dungeon, bg-graveyard, bg-harbor, bg-library, bg-plains, bg-snow-mountain, bg-swamp, bg-throne-room, bg-underwater, bg-volcano, bg-workshop
-
-### è§’è‰² â€” ç”¨äºŽscene_update.add_assetsä¸­çš„id
-- warrior-idle, mage-idle, npc-merchant, npc-guard, animal-sheep, animal-horse, bard, guard, healer, mage, merchant, rogue, villager, warrior
-- character-archer, character-beggar, character-blacksmith, character-druid, character-farmer, character-gladiator, character-innkeeper, character-king, character-knight-heavy, character-nun, character-peasant, character-prisoner, character-skeleton-warrior, character-witch
-
-### ç”Ÿç‰© â€” ç”¨äºŽscene_update.add_assetsä¸­çš„id
-- dragon, wolf, skeleton, slime, spider
-
-### ç‰©å“ â€” ç”¨äºŽscene_update.add_assetsä¸­çš„id
-- table, chest, torch, sword, potion, barrel, campfire, anvil, chest-open
-- bow, crown, key, potion-health, scroll, shield, torch-item
-
-### ç‰¹æ•ˆ â€” ç”¨äºŽscene_update.effectsä¸­çš„id
-- fire, fog, magic-sparkle
-- fx-buff-glow, fx-dark-sparkle, fx-explosion, fx-heal-glow, fx-ice-shatter, fx-lightning, fx-poison-cloud, fx-portal, fx-rain-overlay, fx-shadow-aura, fx-shield-aura, fx-smoke, fx-snow-fall, fx-teleport-flash, fx-wind-streaks
-
-## æ–°å¢žç±»åˆ«è¯´æ˜Ž
-- ç”Ÿç‰©ï¼ˆcreaturesï¼‰ï¼šdragon, wolf, skeleton, slime, spider ç­‰æ€ªç‰©ï¼Œæœ‰é«˜è´¨é‡SVGæ¸²æŸ“
-- ç‰©å“ï¼ˆitemsï¼‰ï¼šbow, crown, key, scroll, shield ç­‰å¯æ‹¾å–ç‰©å“
-- ç‰¹æ•ˆï¼ˆfx-*ï¼‰ï¼šé—ªç”µã€çˆ†ç‚¸ã€ä¼ é€é—¨ã€æ¯’é›¾ã€å†°ç¢Žç­‰æˆ˜æ–—ç‰¹æ•ˆï¼Œfx- å‰ç¼€æ ‡è¯†
-
+## ç´ æç›®å½•
+${JSON.stringify(this.getAssetCatalog())}
 ## åŠ¨æ€èµ„æºï¼ˆemojiè‡ªåŠ¨åŒ¹é…ï¼‰
 å½“åœºæ™¯ä¸­æœ‰SVGåˆ—è¡¨æœªè¦†ç›–çš„å†…å®¹æ—¶ï¼Œç›´æŽ¥ä½¿ç”¨æè¿°æ€§è‹±æ–‡IDï¼Œå¼•æ“Žä¼šè‡ªåŠ¨åŒ¹é…emojiï¼š
 - åŠ¨ç‰©ï¼šdragonâ†’ðŸ‰, wolfâ†’ðŸº, bearâ†’ðŸ», catâ†’ðŸ±, birdâ†’ðŸ¦, fishâ†’ðŸŸ, spiderâ†’ðŸ•·ï¸, lionâ†’ðŸ¦
@@ -112,7 +89,15 @@ const SceneDSL = {
       "background": "èƒŒæ™¯ID",
       "characters": [
         {"id": "è§’è‰²ID", "x": 30, "y": 60, "fromX": -20, "toX": 30, "duration": 1000, "state": "idle"},
-        {"id.¶å¯é€‰çš„è¡ŒåŠ¨é€‰é¡¹1", "é€‰é¡¹2", "é€‰é¡¹3"]
+        {"id": "è§’è‰²ID2", "x": 70, "y": 60, "fromX": 120, "toX": 70, "duration": 1000, "state": "idle"}
+      ],
+      "objects": [
+        {"id": "ç‰©å“ID", "x": 50, "y": 50}
+      ]
+    },
+    "clear": false
+  },
+  "choices": ["çŽ©å®¶å¯é€‰çš„è¡ŒåŠ¨é€‰é¡¹1", "é€‰é¡¹2", "é€‰é¡¹3"]
 }
 
 ### å­—æ®µè¯´æ˜Ž
@@ -139,6 +124,76 @@ const SceneDSL = {
       "background": "bg-tavern-interior",
       "characters": [
         {"id": "bard", "x": 25, "y": 60, "fromX": -10, "toX": 25, "duration": 600, "state": "idle"},
-        {"id'–BŸ–>Ã¢š’âšv¿¦ê›¦Hˆ°€‹¢ÖÃ–BG–Bšâã¢¾_’êë–B³’î[–òç––<ˆ°€‹–r£¢žK¢B÷š&û’â«’ö7žö»–vC’â,ˆ°€‹¢¾‹¦^»–ê_’âïšr'šÊ‡šr'š"ÿ¦^Ð‰t)ô((ŒŒŒŒƒž’ë’ú,Ë¾òi9Aš+¢ºÛ–>7–êP)ì(€€‰¹…ÉÉ…Ñ¥½¸ˆè€‹–V’êëžz«–’Ÿ’êžróžvo¾ò3š&/’â·žj¦Kšv¿–Þ»ž
-çšîG¢B÷Ž’î[šbûžÛšÊ‡šr'¦ŠšZg–"Ã’öƒ’òkš>C–ë¢þgš‚ßžj¦^»¦ŠcŽˆ°(€€‰Í•¹•}ÕÁ‘…Ñ”ˆèì(€€€€‰É•…Ñ¥½¹Ìˆèl(€€€€€ì‰¥ˆè€‰µ•É¡…¹Ðˆ°€‰ÍÑ…Ñ”ˆè€‰ÍÕÉÁÉ¥Í•ˆ°€‰ÍÑ…ÉÑ•±…äˆè€À°€‰‘ÕÉ…Ñ¥½¸ˆè€ÈÔÀÀ°€‰É•Ù•ÉÑQ¼ˆè€‰¥‘±”‰ô(€€€t(€ô)ô((ŒŒŒŒƒž’ë’ú,Ï¾òkš"cšZ_–rëšf¼)ì(€€‰¹…ÉÉ…Ñ¥½¸ˆè€‹’öƒš.S–ë–&G¾ò3–¾ç¦v‹žj–N—–âšz_–>G–ë–"ë¢Ïžj–Â[–>¯¾ò3š2—¢"{žvžR¦R#žjž~·–"–BG’öƒš&Gšv—¾òˆ°(€€‰Í•¹•}ÕÁ‘…Ñ”ˆèì(€€€€‰…‘‘}…ÍÍ•ÑÌˆèl(€€€€€ì‰¥ˆè€‰É½Õ”ˆ°€‰àˆè€ÜÔ°€‰äˆè€ØÀ°€‰™É½µ`ˆè€ÄÌÀ°€‰Ñ½`ˆè€ÜÔ°€‰‘ÕÉ…Ñ¥½¸ˆè€ÔÀÀ°€‰ÍÑ…Ñ”ˆè€‰™¥¡Ñ¥¹œ‰ô(€€€t°(€€€€‰ÕÁ‘…Ñ”ˆèl(€€€€€ì‰¥ˆè€‰Ý…ÉÉ¥½Èˆ°€‰ÍÑ…Ñ”ˆè€‰™¥¡Ñ¥¹œ‰ô(€€€t°(€€€€‰•™™•ÑÌˆèl(€€€€€ì‰¥ˆè€‰™¥É”ˆ°€‰àˆè€ÜÔ°€‰äˆè€ÐÔ°€‰Í…±”ˆè€Ä¸È°€‰‘ÕÉ…Ñ¥½¸ˆè€ÔÀÀÁô(€€€t(€ô)ô((ŒŒŒŒƒž’ë’ú,Ó¾òk¦¶SšÎWšZ÷šRø)ì(€€‰¹…ÉÉ…Ñ¥½¸ˆè€‹šÎW–â#’âû¢ÖßšÎWšv[¾ò3žÒ¯¢&Ëžj¢÷¦?–r£šv[–Â[šÆ¢k¾ò3ž¦ëšÂS’â·–šî‡’ê–fó–V«’ös–N7žj¦¶S–*oŽ’â¦Ož
-¯žn»žj–'šv–Â–BG’ê¢þs–’žjšV3’êëŽˆ°(€€‰Í•¹•}ÕÁ‘…Ñ”ˆèì(€€€€‰É•…Ñ¥½¹Ìˆèl(€€€€€ì‰¥Ÿš>?¢þÃžRš"C–rëšf¿šnÓšZÃŽ	€ì(€ô°((€€¼¨¨(€€€¨•Ð…Ù…¥±…‰±”…ÍÍ•Ð%Ì™½ÈÉ•™•É•¹”¸(€€€¨¼(€•ÑÍÍ•Ñ…Ñ…±½œ ¤ì(€€€É•ÑÕÉ¸ì(€€€€€‰…­É½Õ¹‘Ìèl(€€€€€€€€‰œµ™½É•ÍÐµ‘…äœ°€‰œµ™½É•ÍÐµ¹¥¡Ðœ°€‰œµÑ…Ù•É¸µ¥¹Ñ•É¥½Èœ°€‰œµÉ½ÍÍÉ½…œ°(€€€€€€€€‰œµÑ½Ý¸µÍÅÕ…É”œ°€‰œµ…Ù”µ•¹ÑÉ…¹”œ°€‰œµµ…É­•Ðœ°€‰œµ…ÍÑ±”µ…Ñ”œ°(€€€€€€€€‰œµ…ÍÑ±”œ°€‰œµ…Ù”œ°€‰œµ™½É•ÍÐœ°€‰œµµ½Õ¹Ñ…¥¸œ°€‰œµÉ¥Ù•Èœ°(€€€€€€€€‰œµÑ…Ù•É¸œ°€‰œµÙ¥±±…”œ°(€€€€€€€€‰œµ…É•¹„œ°€‰œµ‰•… œ°€‰œµ…Ñ¡•‘É…°œ°€‰œµ‘•Í•ÉÐœ°€‰œµ‘Õ¹•½¸œ°(€€€€€€€€‰œµÉ…Ù•å…Éœ°€‰œµ¡…É‰½Èœ°€‰œµ±¥‰É…Éäœ°€‰œµÁ±…¥¹Ìœ°(€€€€€€€€‰œµÍ¹½Üµµ½Õ¹Ñ…¥¸œ°€‰œµÍÝ…µÀœ°€‰œµÑ¡É½¹”µÉ½½´œ°€‰œµÕ¹‘•ÉÝ…Ñ•Èœ°(€€€€€€€€‰œµÙ½±…¹¼œ°€‰œµÝ½É­Í¡½Àœ(€€€€€t°(€€€€€¡…É…Ñ•ÉÌèl(€€€€€€€€Ý…ÉÉ¥½Èµ¥‘±”œ°€µ…”µ¥‘±”œ°€¹ÁŒµµ•É¡…¹Ðœ°€¹ÁŒµÕ…Éœ°(€€€€€€€€…¹¥µ…°µÍ¡••Àœ°€…¹¥µ…°µ¡½ÉÍ”œ°€‰…Éœ°€Õ…Éœ°€¡•…±•Èœ°(€€€€€€€€µ…”œ°€µ•É¡…¹Ðœ°€É½Õ”œ°€Ù¥±±…•Èœ°€Ý…ÉÉ¥½Èœ°(€€€€€€€€¡…É…Ñ•Èµ…É¡•Èœ°€¡…É…Ñ•Èµ‰•…Èœ°€¡…É…Ñ•Èµ‰±…­Íµ¥Ñ œ°(€€€€€€€€¡…É…Ñ•Èµ‘ÉÕ¥œ°€¡…É…Ñ•Èµ™…Éµ•Èœ°€¡…É…Ñ•Èµ±…‘¥…Ñ½Èœ°(€€€€€€€€¡…É…Ñ•Èµ¥¹¹­••Á•Èœ°€¡…É…Ñ•Èµ­¥¹œœ°€¡…É…Ñ•Èµ­¹¥¡Ðµ¡•…Ùäœ°(€€€€€€€€¡…É…Ñ•Èµ¹Õ¸œ°€¡…É…Ñ•ÈµÁ•…Í…¹Ðœ°€¡…É…Ñ•ÈµÁÉ¥Í½¹•Èœ°(€€€€€€€€¡…É…Ñ•ÈµÍ­•±•Ñ½¸µÝ…ÉÉ¥½Èœ°€¡…É…Ñ•ÈµÝ¥Ñ œ(€€€€€t°(€€€€€É•…ÑÕÉ•Ìèl‘É…½¸œ°€Ý½±˜œ°€Í­•±•Ñ½¸œ°€Í±¥µ”œ°€ÍÁ¥‘•Èt°(€€€€€½‰©•ÑÌèl(€€€€€€€€Ñ…‰±”œ°€¡•ÍÐœ°€Ñ½É œ°€ÍÝ½Éœ°€Á½Ñ¥½¸œ°(€€€€€€€€‰…ÉÉ•°œ°€…µÁ™¥É”œ°€…¹Ù¥°œ°€¡•ÍÐµ½Á•¸œ°(€€€€€€€€‰½Üœ°€É½Ý¸œ°€­•äœ°€Á½Ñ¥½¸µ¡•…±Ñ œ°€ÍÉ½±°œ°€Í¡¥•±œ°€Ñ½É µ¥Ñ•´œ(€€€€€t°(€€€€€•™™•ÑÌèl(€€€€€€€€™¥É”œ°€™½œœ°€µ…¥ŒµÍÁ…É­±”œ°(€€€€€€€€™àµ‰Õ™˜µ±½Üœ°€™àµ‘…É¬µÍÁ…É­±”œ°€™àµ•áÁ±½Í¥½¸œ°€™àµ¡•…°µ±½Üœ°(€€€€€€€€™àµ¥”µÍ¡…ÑÑ•Èœ°€™àµ±¥¡Ñ¹¥¹œœ°€™àµÁ½¥Í½¸µ±½Õœ°€™àµÁ½ÉÑ…°œ°(€€€€€€€€™àµÉ…¥¸µ½Ù•É±…äœ°€™àµÍ¡…‘½Üµ…ÕÉ„œ°€™àµÍ¡¥•±µ…ÕÉ„œ°€™àµÍµ½­”œ°(€€€€€€€€™àµÍ¹½Üµ™…±°œ°€™àµÑ•±•Á½ÉÐµ™±…Í œ°€™àµÝ¥¹µÍÑÉ•…­Ìœ(€€€€€t°(€€€€€ÍÑ…Ñ•Ìèl(€€€€€€€€¥‘±”œ°€ÍÕÉÁÉ¥Í•œ°€•…Ñ¥¹œœ°€‘É¥¹­¥¹œœ°(€€€€€€€€…ÍÑ¥¹œœ°€™¥¡Ñ¥¹œœ°€±½½­}±•™Ðœ°€ÍÁ¥Ñ}‘É¥¹¬œ(€€€€€t(€€€ôì(€ô)ôì
+        {"id": "merchant", "x": 70, "y": 60, "state": "idle"}
+      ],
+      "objects": [
+        {"id": "table", "x": 45, "y": 65},
+        {"id": "torch", "x": 15, "y": 40},
+        {"id": "torch", "x": 85, "y": 40}
+      ]
+    }
+  },
+  "choices": ["èµ°å‘å§å°è¦ä¸€æ¯éº¦é…’", "èµ°å‘åŸæ¸¸è¯—äººå¬ä»–å¼¹å¥", "åœ¨è§’è½æ‰¾ä¸ªä½ç½®åä¸‹", "è¯¢é—®åº—ä¸»æœ‰æ²¡æœ‰æˆ¿é—´"]
+}
+
+#### ç¤ºä¾‹2ï¼šNPCæƒŠè®¶ååº”
+{
+  "narration": "å•†äººçžªå¤§äº†çœ¼ç›ï¼Œæ‰‹ä¸­çš„é…’æ¯å·®ç‚¹æ»‘è½ã€‚ä»–æ˜¾ç„¶æ²¡æœ‰é¢„æ–™åˆ°ä½ ä¼šæå‡ºè¿™æ ·çš„é—®é¢˜ã€‚",
+  "scene_update": {
+    "reactions": [
+      {"id": "merchant", "state": "surprised", "startDelay": 0, "duration": 2500, "revertTo": "idle"}
+    ]
+  }
+}
+
+#### ç¤ºä¾‹3ï¼šæˆ˜æ–—åœºæ™¯
+{
+  "narration": "ä½ æ‹”å‡ºå‰‘ï¼Œå¯¹é¢çš„å“¥å¸ƒæž—å‘å‡ºåˆºè€³çš„å°–å«ï¼ŒæŒ¥èˆžç€ç”Ÿé”ˆçš„çŸ­åˆ€å‘ä½ æ‰‘æ¥ï¼",
+  "scene_update": {
+    "add_assets": [
+      {"id": "rogue", "x": 75, "y": 60, "fromX": 130, "toX": 75, "duration": 500, "state": "fighting"}
+    ],
+    "update": [
+      {"id": "warrior", "state": "fighting"}
+    ],
+    "effects": [
+      {"id": "fire", "x": 75, "y": 45, "scale": 1.2, "duration": 5000}
+    ]
+  }
+}
+
+#### ç¤ºä¾‹4ï¼šé­”æ³•æ–½æ”¾
+{
+  "narration": "æ³•å¸ˆä¸¾èµ·æ³•æ–ï¼Œç´«è‰²çš„èƒ½é‡åœ¨æ–å°–æ±‡èšï¼Œç©ºæ°”ä¸­å……æ»¡äº†å™¼å•ªä½œå“çš„é­”åŠ›ã€‚ä¸€é“ç‚«ç›®çš„å…‰æŸå°„å‘äº†è¿œå¤„çš„æ•Œäººã€‚",
+  "scene_update": {
+    "reactions": [
+      {"id": "mage", "state": "casting", "startDelay": 0, "duration": 3000, "revertTo": "idle"}
+    ],
+    "effects": [
+      {"id": "magic-sparkle", "x": 60, "y": 40, "scale": 2.0, "duration": 3000, "animation": "fadeIn"}
+    ]
+  }
+}
+
+çŽ°åœ¨ï¼Œæ ¹æ®ç”¨æˆ·æè¿°ç”Ÿæˆåœºæ™¯æ›´æ–°ã€‚`;
+  },
+
+  /**
+   * Get available asset IDs for reference.
+   */
+  getAssetCatalog() {
+    const groups = {backgrounds: [], characters: [], creatures: [], objects: [], items: [], effects: [], ui: []};
+    const names = {background: "backgrounds", character: "characters", creature: "creatures", object: "objects", item: "items", effect: "effects", ui: "ui"};
+    for (const asset of SVGRenderer._libraryManifest || []) {
+      const group = names[asset.layer];
+      if (group) groups[group].push(asset.id);
+    }
+    if (!Object.values(groups).some(items => items.length)) {
+      for (const [id, meta] of Object.entries(SVGRenderer.assetMeta)) {
+        groups[names[meta.layer] || "objects"].push(id);
+      }
+    }
+    groups.states = ["idle", "surprised", "eating", "drinking", "casting", "fighting", "look_left", "spit_drink"];
+    return groups;
+  }
+};

@@ -12,8 +12,6 @@ const SVGRenderer = {
   characterStates: {},
   _animationTimers: {},
   _svgCache: {},
-  _libraryManifest: [],
-  _LIBRARY_BASE: 'assets/svg-asset-library/assets',
   _layerOrder: ['scene-background', 'scene-characters', 'scene-objects', 'scene-effects'],
 
   // ── Camera System ──────────────────────────────────────────────
@@ -208,7 +206,1358 @@ const SVGRenderer = {
     'demon-lord':    { base: '👹', scale: 2.8, filter: 'saturate(1.5)', overlays: ['🔥','💀','⚔️'], shadow: true, glow: true, label: '魔王' },
     'angel':         { base: '👼', scale: 2.2, filter: 'brightness(1.4) saturate(0.5)', overlays: ['✨','✨','🕊️'], glow: true, label: '天使' },
     'mimic':         { base: '📦', scale: 1.5, overlays: ['👅','👁️','🦷'], shadow: true, label: '宝箱怪' },
-    'slime-king':    { base: '🟢', scale: 2.5, filter: 'hue-rotate(100deg)', overlays9D�Q4�PЀL@��Ovr�����ם��h]��ݭ�֥ r.startDelay || 0);
+    'slime-king':    { base: '🟢', scale: 2.5, filter: 'hue-rotate(100deg)', overlays: ['👑','💚','💧'], shadow: true, label: '史莱姆王' },
+    'vampire':       { base: '🧛', scale: 2.0, filter: 'brightness(0.7)', overlays: ['🦇','🩸','🌙'], shadow: true, glow: true, label: '吸血鬼' },
+  },
+
+  // ── Semantic compositions (common objects → visual recipe) ────
+  // Layout types: overlays=circle around base, ring=stone ring, top=above, side=left-right
+  SEMANTIC: {
+    // ── Structures ───────────────────────────────────────────
+    'well':      { base:'🕳️', ring:['🪨','🪨','🪨','🪨','🪨','🪨'], label:'井' },
+    'fountain':  { base:'💧', ring:['🪨','🪨','🪨','🪨'], overlays:['💧','💧'], label:'喷泉' },
+    'campfire':  { base:'🔥', ring:['🪵','🪵','🪵'], overlays:['✨','✨'], label:'篝火' },
+    'altar':     { base:'🪨', top:['🕯️','🕯️'], overlays:['✨'], label:'祭坛' },
+    'forge':     { base:'🔥', top:['🔨','⚔️'], label:'铁匠铺' },
+    'cauldron':  { base:'🫕', top:['💨','💨','💨'], label:'大锅' },
+    'throne':    { base:'🪑', top:['👑'], overlays:['✨'], label:'王座' },
+    'statue':    { base:'🗿', ring:['🪨','🪨'], label:'雕像' },
+    'pillar':    { base:'🏛️', label:'石柱' },
+    'gate':      { base:'🚪', top:['🏰'], label:'大门' },
+    'bridge':    { base:'🌉', label:'桥' },
+    'grave':     { base:'🪦', label:'墓碑' },
+    'tomb':      { base:'🪦', ring:['💀','💀','💀'], label:'古墓' },
+    'crypt':     { base:'🕳️', ring:['💀','💀'], overlays:['🕸️'], label:'地穴' },
+    'shrine':    { base:'⛩️', top:['✨','✨'], label:'神龛' },
+    'tent':      { base:'⛺', label:'帐篷' },
+    'cart':      { base:'🛒', label:'推车' },
+    'wagon':     { base:'🛒', label:'马车' },
+    'ladder':    { base:'🪜', label:'梯子' },
+    'sign':      { base:'🪧', label:'告示牌' },
+    'stocks':    { base:'🪵', label:'刑具' },
+    'cage':      { base:'🔒', ring:['🔩','🔩','🔩'], label:'笼子' },
+    'cell':      { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'牢房' },
+    'pier':      { base:'🪵', top:['⚓'], label:'码头' },
+    'raft':      { base:'🪵', ring:['🪵','🪵','🪵'], label:'木筏' },
+    'boat':      { base:'⛵', label:'小船' },
+    'ship':      { base:'🚢', label:'大船' },
+    'dock':      { base:'⚓', top:['🪵','🪵'], label:'码头' },
+    'scaffold':  { base:'🪵', top:['🪢'], label:'绞刑架' },
+    'gallows':   { base:'🪵', top:['🪢','💀'], label:'绞刑台' },
+    'pillory':   { base:'🪵', label:'枷锁' },
+    'pyre':      { base:'🔥', ring:['🪵','🪵','🪵','🪵'], label:'火刑台' },
+    'obelisk':   { base:'🗿', top:['✨'], label:'方尖碑' },
+    'totem':     { base:'🗿', top:['🔥'], label:'图腾' },
+    'banner':    { base:'🚩', label:'旗帜' },
+    'flag':      { base:'🚩', label:'旗帜' },
+    'torch':     { base:'🔥', label:'火把' },
+    'lamp':      { base:'🏮', label:'灯' },
+    'chandelier':{ base:'🪔', top:['✨','✨'], label:'吊灯' },
+    'candelabra':{ base:'🕯️', label:'烛台' },
+    'bell':      { base:'🔔', label:'钟' },
+    'bellows':   { base:'🪭', label:'风箱' },
+    'anvil':     { base:'🔨', label:'铁砧' },
+    'mill':      { base:'🏗️', label:'磨坊' },
+    'windmill':  { base:'🏗️', label:'风车' },
+    'stable':    { base:'🐴', label:'马厩' },
+    'kennel':    { base:'🐕', label:'狗窝' },
+    'coop':      { base:'🐔', label:'鸡窝' },
+    'nest':      { base:'🪹', top:['🥚','🥚'], label:'鸟巢' },
+    'hive':      { base:'🍯', top:['🐝','🐝'], label:'蜂巢' },
+    'den':       { base:'🕳️', top:['💀'], label:'兽穴' },
+    'burrow':    { base:'🕳️', top:['🐰'], label:'兔窝' },
+    'pond':      { base:'💧', ring:['🌿','🌿','🌿'], label:'池塘' },
+    'pool':      { base:'💧', ring:['🪨','🪨','🪨'], label:'水池' },
+    'spring':    { base:'💧', ring:['🪨','🪨'], label:'泉水' },
+    'oasis':     { base:'🌴', ring:['💧','💧'], label:'绿洲' },
+    'stump':     { base:'🪵', label:'树桩' },
+    'bush':      { base:'🌿', ring:['🌿','🌿'], label:'灌木' },
+    'thicket':   { base:'🌿', ring:['🌿','🌿','🌿'], label:'树丛' },
+    'rock':      { base:'🪨', label:'岩石' },
+    'boulder':   { base:'🪨', scale:1.5, label:'巨石' },
+    'mushroom':  { base:'🍄', ring:['🍄','🍄'], label:'蘑菇丛' },
+    'flowers':   { base:'🌸', ring:['🌼','🌻','🌷'], label:'花丛' },
+    'herb':      { base:'🌿', label:'草药' },
+    'vine':      { base:'🌱', label:'藤蔓' },
+    'web':       { base:'🕸️', label:'蛛网' },
+    'cocoon':    { base:'🪱', label:'虫茧' },
+    'corpse':    { base:'💀', label:'尸体' },
+    'skeleton':  { base:'💀', ring:['🦴','🦴','🦴'], label:'骷髅' },
+    'bones':     { base:'🦴', ring:['🦴','🦴'], label:'骸骨' },
+    'rubble':    { base:'🪨', ring:['🧱','🧱'], label:'瓦砾' },
+    'debris':    { base:'🪵', ring:['🍂','🍂'], label:'残骸' },
+    'chest':     { base:'📦', top:['✨'], label:'宝箱' },
+    'barrel':    { base:'🛢️', label:'木桶' },
+    'crate':     { base:'📦', label:'箱子' },
+    'sack':      { base:'🎒', label:'麻袋' },
+    'bag':       { base:'🎒', label:'袋子' },
+    'coffin':    { base:'⚰️', label:'棺材' },
+    'casket':    { base:'⚰️', top:['✨'], label:'华丽棺材' },
+    'mirror':    { base:'🪞', label:'镜子' },
+    'painting':  { base:'🖼️', label:'画' },
+    'tapestry':  { base:'🖼️', label:'挂毯' },
+    'carpet':    { base:'🧶', label:'地毯' },
+    'curtain':   { base:'🪟', label:'帘子' },
+    'door':      { base:'🚪', label:'门' },
+    'window':    { base:'🪟', label:'窗' },
+    'wall':      { base:'🧱', label:'墙' },
+    'floor':     { base:'⬛', label:'地板' },
+    'ceiling':   { base:'🔲', label:'天花板' },
+    'roof':      { base:'🏠', label:'屋顶' },
+    'stairs':    { base:'🪜', label:'楼梯' },
+    'ramp':      { base:'📐', label:'斜坡' },
+    'pit':       { base:'🕳️', label:'深坑' },
+    'hole':      { base:'🕳️', label:'洞' },
+    'tunnel':    { base:'🕳️', ring:['🧱','🧱','🧱'], label:'隧道' },
+    'passage':   { base:'🚪', label:'通道' },
+    'corridor':  { base:'🚪', label:'走廊' },
+    'room':      { base:'🚪', label:'房间' },
+    'chamber':   { base:'🚪', label:'密室' },
+    'vault':     { base:'🔒', label:'金库' },
+    'treasury':  { base:'💰', top:['👑','💎'], label:'宝库' },
+    'library':   { base:'📚', label:'图书馆' },
+    'study':     { base:'📖', label:'书房' },
+    'workshop':  { base:'🔨', label:'工坊' },
+    'laboratory':{ base:'🧪', top:['⚗️'], label:'实验室' },
+    'kitchen':   { base:'🍳', label:'厨房' },
+    'pantry':    { base:'🫙', label:'储藏室' },
+    'cellar':    { base:'🍷', label:'酒窖' },
+    'dungeon':   { base:'⛓️', ring:['💀','💀'], label:'地牢' },
+    'prison':    { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'监狱' },
+    'arena':     { base:'🏟️', label:'竞技场' },
+    'colosseum': { base:'🏟️', label:'斗兽场' },
+    'market':    { base:'🏪', label:'市场' },
+    'shop':      { base:'🏪', label:'商店' },
+    'inn':       { base:'🏨', label:'旅店' },
+    'tavern':    { base:'🍺', label:'酒馆' },
+    'pub':       { base:'🍻', label:'酒吧' },
+    'temple':    { base:'⛪', label:'神殿' },
+    'church':    { base:'⛪', label:'教堂' },
+    'chapel':    { base:'⛪', label:'小教堂' },
+    'cathedral': { base:'⛪', label:'大教堂' },
+    'monastery': { base:'⛪', label:'修道院' },
+    'tower':     { base:'🗼', label:'塔' },
+    'castle':    { base:'🏰', label:'城堡' },
+    'palace':    { base:'🏯', label:'宫殿' },
+    'fortress':  { base:'🏰', label:'要塞' },
+    'keep':      { base:'🏰', label:'主堡' },
+    'wall':      { base:'🧱', label:'城墙' },
+    'rampart':   { base:'🧱', label:'壁垒' },
+    'moat':      { base:'💧', label:'护城河' },
+    'garden':    { base:'🏡', label:'花园' },
+    'park':      { base:'🏞️', label:'公园' },
+    'cemetery':  { base:'⚰️', ring:['🪦','🪦','🪦'], label:'墓地' },
+    'graveyard': { base:'🪦', ring:['💀','💀','💀'], label:'坟场' },
+    'battlefield':{ base:'⚔️', ring:['💀','💀','💀','💀'], label:'战场' },
+    'ruins':     { base:'🏛️', ring:['🧱','🧱','🧱'], label:'废墟' },
+    'wreckage':  { base:'🪵', ring:['💥','💥'], label:'残骸' },
+    'camp':      { base:'🏕️', label:'营地' },
+    'base':      { base:'🏕️', label:'基地' },
+    'outpost':   { base:'🗼', label:'哨站' },
+    'watchtower':{ base:'🗼', top:['🔭'], label:'瞭望塔' },
+    'lighthouse':{ base:'🗼', top:['💡'], label:'灯塔' },
+    'windmill':  { base:'🏗️', label:'风车' },
+    'watermill': { base:'🏗️', top:['💧'], label:'水车' },
+    'mine':      { base:'⛏️', label:'矿井' },
+    'quarry':    { base:'⛏️', ring:['🪨','🪨'], label:'采石场' },
+    'farm':      { base:'🌾', label:'农场' },
+    'field':     { base:'🌾', label:'田地' },
+    'vineyard':  { base:'🍇', label:'葡萄园' },
+    'orchard':   { base:'🍎', label:'果园' },
+    'pasture':   { base:'🐑', label:'牧场' },
+    'meadow':    { base:'🌾', label:'草地' },
+    'marsh':     { base:'🌿', ring:['💧','💧'], label:'沼泽' },
+    'swamp':     { base:'🌿', ring:['💧','💧','💀'], label:'湿地' },
+    'desert':    { base:'🏜️', label:'沙漠' },
+    'dune':      { base:'🏜️', label:'沙丘' },
+    'cliff':     { base:'🪨', label:'悬崖' },
+    'canyon':    { base:'🪨', ring:['🪨','🪨'], label:'峡谷' },
+    'ravine':    { base:'🕳️', ring:['🪨','🪨'], label:'深谷' },
+    'volcano':   { base:'🌋', label:'火山' },
+    'glacier':   { base:'🧊', label:'冰川' },
+    'iceberg':   { base:'🧊', label:'冰山' },
+    'waterfall': { base:'💧', top:['💧','💧'], label:'瀑布' },
+    'rapids':    { base:'🌊', label:'急流' },
+    'whirlpool': { base:'🌀', label:'漩涡' },
+    'island':    { base:'🏝️', label:'岛屿' },
+    'peninsula': { base:'🏝️', label:'半岛' },
+    'reef':      { base:'🪸', label:'珊瑚礁' },
+    'lagoon':    { base:'💧', ring:['🌴','🌴'], label:'泻湖' },
+    'harbor':    { base:'⚓', label:'港口' },
+    'port':      { base:'🚢', label:'码头' },
+    'lighthouse':{ base:'🗼', top:['💡'], label:'灯塔' },
+    'signal':    { base:'🔥', label:'烽火' },
+    'beacon':    { base:'🔥', top:['✨'], label:'灯塔' },
+    'waypoint':  { base:'🚩', label:'路标' },
+    'marker':    { base:'🪧', label:'标记' },
+    'crossroads':{ base:'🛤️', label:'十字路口' },
+    'junction':  { base:'🛤️', label:'岔路' },
+    'fork':      { base:'🛤️', label:'岔口' },
+    'path':      { base:'🛤️', label:'小路' },
+    'trail':     { base:'🛤️', label:'小径' },
+    'road':      { base:'🛣️', label:'大路' },
+    'highway':   { base:'🛣️', label:'公路' },
+    'tunnel':    { base:'🕳️', label:'隧道' },
+    'mine':      { base:'⛏️', label:'矿洞' },
+    'shaft':     { base:'🕳️', label:'竖井' },
+    'pit':       { base:'🕳️', label:'陷阱坑' },
+    'trap':      { base:'🪤', label:'陷阱' },
+    'snare':     { base:'🪤', label:'圈套' },
+    'ward':      { base:'✨', label:'结界' },
+    'barrier':   { base:'🛡️', label:'屏障' },
+    'rune':      { base:'✨', label:'符文' },
+    'glyph':     { base:'✨', label:'符文' },
+    'circle':    { base:'⭕', label:'法阵' },
+    'pentagram': { base:'⭐', label:'五芒星' },
+    'sigil':     { base:'✨', label:'印记' },
+    'portal':    { base:'🌀', label:'传送门' },
+    'gate':      { base:'🚪', label:'大门' },
+    'archway':   { base:'🏛️', label:'拱门' },
+    'entrance':  { base:'🚪', label:'入口' },
+    'exit':      { base:'🚪', label:'出口' },
+    'threshold': { base:'🚪', label:'门槛' },
+    'foyer':     { base:'🚪', label:'门厅' },
+    'lobby':     { base:'🚪', label:'大厅' },
+    'hall':      { base:'🏛️', label:'大厅' },
+    'gallery':   { base:'🖼️', label:'画廊' },
+    'auditorium':{ base:'🏛️', label:'礼堂' },
+    'throne':    { base:'👑', label:'王座' },
+    'seat':      { base:'🪑', label:'座位' },
+    'bench':     { base:'🪑', label:'长凳' },
+    'stool':     { base:'🪑', label:'凳子' },
+    'table':     { base:'🪑', label:'桌子' },
+    'desk':      { base:'🪑', label:'书桌' },
+    'counter':   { base:'🪑', label:'柜台' },
+    'shelf':     { base:'📚', label:'书架' },
+    'bookcase':  { base:'📚', label:'书柜' },
+    'cabinet':   { base:'🗄️', label:'柜子' },
+    'wardrobe':  { base:'🚪', label:'衣柜' },
+    'dresser':   { base:'🗄️', label:'梳妆台' },
+    'bed':       { base:'🛏️', label:'床' },
+    'cot':       { base:'🛏️', label:'简易床' },
+    'hammock':   { base:'🛏️', label:'吊床' },
+    'pillow':    { base:'🛋️', label:'枕头' },
+    'blanket':   { base:'🧣', label:'毯子' },
+    'rug':       { base:'🧶', label:'地毯' },
+    'mat':       { base:'🧶', label:'垫子' },
+    'basket':    { base:'🧺', label:'篮子' },
+    'bucket':    { base:'🪣', label:'水桶' },
+    'bowl':      { base:'🥣', label:'碗' },
+    'plate':     { base:'🍽️', label:'盘子' },
+    'cup':       { base:'☕', label:'杯子' },
+    'mug':       { base:'🍺', label:'马克杯' },
+    'goblet':    { base:'🏆', label:'酒杯' },
+    'chalice':   { base:'🏆', label:'圣杯' },
+    'jug':       { base:'🏺', label:'水壶' },
+    'vase':      { base:'🏺', label:'花瓶' },
+    'jar':       { base:'🫙', label:'罐子' },
+    'bottle':    { base:'🍾', label:'瓶子' },
+    'flask':     { base:'🧪', label:'烧瓶' },
+    'vial':      { base:'🧪', label:'试管' },
+    'potion':    { base:'🧪', label:'药水' },
+    'philtre':   { base:'🧪', label:'魔药' },
+    'elixir':    { base:'🧪', label:'灵药' },
+    'herbs':     { base:'🌿', label:'草药' },
+    'ingredients':{ base:'🧪', label:'材料' },
+    'reagents':  { base:'🧪', label:'试剂' },
+    'scroll':    { base:'📜', label:'卷轴' },
+    'tome':      { base:'📖', label:'典籍' },
+    'grimoire':  { base:'📖', label:'魔法书' },
+    'journal':   { base:'📓', label:'日记' },
+    'letter':    { base:'✉️', label:'信件' },
+    'note':      { base:'📝', label:'纸条' },
+    'map':       { base:'🗺️', label:'地图' },
+    'compass':   { base:'🧭', label:'指南针' },
+    'key':       { base:'🔑', label:'钥匙' },
+    'lock':      { base:'🔒', label:'锁' },
+    'chain':     { base:'⛓️', label:'锁链' },
+    'rope':      { base:'🪢', label:'绳子' },
+    'ladder':    { base:'🪜', label:'梯子' },
+    'rope':      { base:'🪢', label:'绳索' },
+    'grapple':   { base:'🪝', label:'抓钩' },
+    'hook':      { base:'🪝', label:'钩子' },
+    'pulley':    { base:'⚙️', label:'滑轮' },
+    'lever':     { base:'⚙️', label:'杠杆' },
+    'switch':    { base:'🔘', label:'开关' },
+    'button':    { base:'🔴', label:'按钮' },
+    'crank':     { base:'⚙️', label:'曲柄' },
+    'gear':      { base:'⚙️', label:'齿轮' },
+    'spring':    { base:'🔧', label:'弹簧' },
+    'mechanism': { base:'⚙️', label:'机关' },
+    'device':    { base:'⚙️', label:'装置' },
+    'machine':   { base:'⚙️', label:'机器' },
+    'contraption':{ base:'⚙️', label:'奇妙装置' },
+    'gadget':    { base:'🔧', label:'小工具' },
+    'tool':      { base:'🔧', label:'工具' },
+    'instrument':{ base:'🔧', label:'器具' },
+    'apparatus': { base:'⚙️', label:'器械' },
+
+    // ── Chinese keywords (中文关键词) ──────────────────────────
+    '井':    { base:'🕳️', ring:['🪨','🪨','🪨','🪨','🪨','🪨'], label:'井' },
+    '泉水':  { base:'💧', ring:['🪨','🪨'], label:'泉水' },
+    '喷泉':  { base:'💧', ring:['🪨','🪨','🪨','🪨'], label:'喷泉' },
+    '祭坛':  { base:'🪨', top:['🕯️','🕯️'], label:'祭坛' },
+    '篝火':  { base:'🔥', ring:['🪵','🪵','🪵'], label:'篝火' },
+    '铁匠铺':{ base:'🔥', top:['🔨'], label:'铁匠铺' },
+    '王座':  { base:'🪑', top:['👑'], label:'王座' },
+    '雕像':  { base:'🗿', ring:['🪨','🪨'], label:'雕像' },
+    '石柱':  { base:'🏛️', label:'石柱' },
+    '大门':  { base:'🚪', top:['🏰'], label:'大门' },
+    '桥':    { base:'🌉', label:'桥' },
+    '墓碑':  { base:'🪦', label:'墓碑' },
+    '古墓':  { base:'🪦', ring:['💀','💀','💀'], label:'古墓' },
+    '神龛':  { base:'⛩️', top:['✨','✨'], label:'神龛' },
+    '帐篷':  { base:'⛺', label:'帐篷' },
+    '梯子':  { base:'🪜', label:'梯子' },
+    '笼子':  { base:'🔒', ring:['🔩','🔩','🔩'], label:'笼子' },
+    '牢房':  { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'牢房' },
+    '木筏':  { base:'🪵', ring:['🪵','🪵','🪵'], label:'木筏' },
+    '小船':  { base:'⛵', label:'小船' },
+    '大船':  { base:'🚢', label:'大船' },
+    '码头':  { base:'⚓', top:['🪵','🪵'], label:'码头' },
+    '绞刑架':{ base:'🪵', top:['🪢'], label:'绞刑架' },
+    '火刑台':{ base:'🔥', ring:['🪵','🪵','🪵','🪵'], label:'火刑台' },
+    '方尖碑':{ base:'🗿', top:['✨'], label:'方尖碑' },
+    '图腾':  { base:'🗿', top:['🔥'], label:'图腾' },
+    '旗帜':  { base:'🚩', label:'旗帜' },
+    '火把':  { base:'🔥', label:'火把' },
+    '灯笼':  { base:'🏮', label:'灯笼' },
+    '吊灯':  { base:'🪔', top:['✨','✨'], label:'吊灯' },
+    '烛台':  { base:'🕯️', label:'烛台' },
+    '钟':    { base:'🔔', label:'钟' },
+    '铁砧':  { base:'🔨', label:'铁砧' },
+    '磨坊':  { base:'🏗️', label:'磨坊' },
+    '风车':  { base:'🏗️', label:'风车' },
+    '马厩':  { base:'🐴', label:'马厩' },
+    '鸟巢':  { base:'🪹', top:['🥚','🥚'], label:'鸟巢' },
+    '蜂巢':  { base:'🍯', top:['🐝','🐝'], label:'蜂巢' },
+    '兽穴':  { base:'🕳️', top:['💀'], label:'兽穴' },
+    '池塘':  { base:'💧', ring:['🌿','🌿','🌿'], label:'池塘' },
+    '水池':  { base:'💧', ring:['🪨','🪨','🪨'], label:'水池' },
+    '灌木':  { base:'🌿', ring:['🌿','🌿'], label:'灌木' },
+    '树丛':  { base:'🌿', ring:['🌿','🌿','🌿'], label:'树丛' },
+    '岩石':  { base:'🪨', label:'岩石' },
+    '巨石':  { base:'🪨', scale:1.5, label:'巨石' },
+    '蘑菇丛':{ base:'🍄', ring:['🍄','🍄'], label:'蘑菇丛' },
+    '花丛':  { base:'🌸', ring:['🌼','🌻','🌷'], label:'花丛' },
+    '草药':  { base:'🌿', label:'草药' },
+    '藤蔓':  { base:'🌱', label:'藤蔓' },
+    '蛛网':  { base:'🕸️', label:'蛛网' },
+    '骷髅':  { base:'💀', ring:['🦴','🦴','🦴'], label:'骷髅' },
+    '骸骨':  { base:'🦴', ring:['🦴','🦴'], label:'骸骨' },
+    '瓦砾':  { base:'🪨', ring:['🧱','🧱'], label:'瓦砾' },
+    '残骸':  { base:'🪵', ring:['🍂','🍂'], label:'残骸' },
+    '宝箱':  { base:'📦', top:['✨'], label:'宝箱' },
+    '木桶':  { base:'🛢️', label:'木桶' },
+    '箱子':  { base:'📦', label:'箱子' },
+    '麻袋':  { base:'🎒', label:'麻袋' },
+    '棺材':  { base:'⚰️', label:'棺材' },
+    '镜子':  { base:'🪞', label:'镜子' },
+    '画':    { base:'🖼️', label:'画' },
+    '挂毯':  { base:'🖼️', label:'挂毯' },
+    '地毯':  { base:'🧶', label:'地毯' },
+    '门':    { base:'🚪', label:'门' },
+    '窗':    { base:'🪟', label:'窗' },
+    '墙':    { base:'🧱', label:'墙' },
+    '地板':  { base:'⬛', label:'地板' },
+    '天花板':{ base:'🔲', label:'天花板' },
+    '屋顶':  { base:'🏠', label:'屋顶' },
+    '楼梯':  { base:'🪜', label:'楼梯' },
+    '深坑':  { base:'🕳️', label:'深坑' },
+    '洞':    { base:'🕳️', label:'洞' },
+    '隧道':  { base:'🕳️', ring:['🧱','🧱','🧱'], label:'隧道' },
+    '通道':  { base:'🚪', label:'通道' },
+    '走廊':  { base:'🚪', label:'走廊' },
+    '密室':  { base:'🚪', label:'密室' },
+    '金库':  { base:'🔒', label:'金库' },
+    '宝库':  { base:'💰', top:['👑','💎'], label:'宝库' },
+    '图书馆':{ base:'📚', label:'图书馆' },
+    '书房':  { base:'📖', label:'书房' },
+    '工坊':  { base:'🔨', label:'工坊' },
+    '实验室':{ base:'🧪', top:['⚗️'], label:'实验室' },
+    '厨房':  { base:'🍳', label:'厨房' },
+    '酒窖':  { base:'🍷', label:'酒窖' },
+    '地牢':  { base:'⛓️', ring:['💀','💀'], label:'地牢' },
+    '监狱':  { base:'🔒', ring:['🧱','🧱','🧱','🧱'], label:'监狱' },
+    '竞技场':{ base:'🏟️', label:'竞技场' },
+    '市场':  { base:'🏪', label:'市场' },
+    '商店':  { base:'🏪', label:'商店' },
+    '旅店':  { base:'🏨', label:'旅店' },
+    '酒馆':  { base:'🍺', label:'酒馆' },
+    '神殿':  { base:'⛪', label:'神殿' },
+    '教堂':  { base:'⛪', label:'教堂' },
+    '塔':    { base:'🗼', label:'塔' },
+    '城堡':  { base:'🏰', label:'城堡' },
+    '宫殿':  { base:'🏯', label:'宫殿' },
+    '要塞':  { base:'🏰', label:'要塞' },
+    '花园':  { base:'🏡', label:'花园' },
+    '墓地':  { base:'⚰️', ring:['🪦','🪦','🪦'], label:'墓地' },
+    '坟场':  { base:'🪦', ring:['💀','💀','💀'], label:'坟场' },
+    '战场':  { base:'⚔️', ring:['💀','💀','💀','💀'], label:'战场' },
+    '废墟':  { base:'🏛️', ring:['🧱','🧱','🧱'], label:'废墟' },
+    '营地':  { base:'🏕️', label:'营地' },
+    '哨站':  { base:'🗼', label:'哨站' },
+    '瞭望塔':{ base:'🗼', top:['🔭'], label:'瞭望塔' },
+    '灯塔':  { base:'🗼', top:['💡'], label:'灯塔' },
+    '矿井':  { base:'⛏️', label:'矿井' },
+    '采石场':{ base:'⛏️', ring:['🪨','🪨'], label:'采石场' },
+    '农场':  { base:'🌾', label:'农场' },
+    '田地':  { base:'🌾', label:'田地' },
+    '葡萄园':{ base:'🍇', label:'葡萄园' },
+    '果园':  { base:'🍎', label:'果园' },
+    '牧场':  { base:'🐑', label:'牧场' },
+    '草地':  { base:'🌾', label:'草地' },
+    '沼泽':  { base:'🌿', ring:['💧','💧'], label:'沼泽' },
+    '沙漠':  { base:'🏜️', label:'沙漠' },
+    '悬崖':  { base:'🪨', label:'悬崖' },
+    '峡谷':  { base:'🪨', ring:['🪨','🪨'], label:'峡谷' },
+    '火山':  { base:'🌋', label:'火山' },
+    '冰川':  { base:'🧊', label:'冰川' },
+    '瀑布':  { base:'💧', top:['💧','💧'], label:'瀑布' },
+    '漩涡':  { base:'🌀', label:'漩涡' },
+    '岛屿':  { base:'🏝️', label:'岛屿' },
+    '港口':  { base:'⚓', label:'港口' },
+    '十字路口':{ base:'🛤️', label:'十字路口' },
+    '岔路':  { base:'🛤️', label:'岔路' },
+    '小路':  { base:'🛤️', label:'小路' },
+    '陷阱':  { base:'🪤', label:'陷阱' },
+    '结界':  { base:'✨', label:'结界' },
+    '符文':  { base:'✨', label:'符文' },
+    '法阵':  { base:'⭕', label:'法阵' },
+    '传送门':{ base:'🌀', label:'传送门' },
+    '拱门':  { base:'🏛️', label:'拱门' },
+    '入口':  { base:'🚪', label:'入口' },
+    '出口':  { base:'🚪', label:'出口' },
+    '大厅':  { base:'🏛️', label:'大厅' },
+    '桌子':  { base:'🪑', label:'桌子' },
+    '椅子':  { base:'🪑', label:'椅子' },
+    '床':    { base:'🛏️', label:'床' },
+    '书架':  { base:'📚', label:'书架' },
+    '柜子':  { base:'🗄️', label:'柜子' },
+    '水桶':  { base:'🪣', label:'水桶' },
+    '碗':    { base:'🥣', label:'碗' },
+    '杯子':  { base:'☕', label:'杯子' },
+    '酒杯':  { base:'🏆', label:'酒杯' },
+    '圣杯':  { base:'🏆', label:'圣杯' },
+    '花瓶':  { base:'🏺', label:'花瓶' },
+    '罐子':  { base:'🫙', label:'罐子' },
+    '瓶子':  { base:'🍾', label:'瓶子' },
+    '药水':  { base:'🧪', label:'药水' },
+    '卷轴':  { base:'📜', label:'卷轴' },
+    '魔法书':{ base:'📖', label:'魔法书' },
+    '地图':  { base:'🗺️', label:'地图' },
+    '钥匙':  { base:'🔑', label:'钥匙' },
+    '锁':    { base:'🔒', label:'锁' },
+    '锁链':  { base:'⛓️', label:'锁链' },
+    '绳子':  { base:'🪢', label:'绳子' },
+    '齿轮':  { base:'⚙️', label:'齿轮' },
+    '机关':  { base:'⚙️', label:'机关' },
+    '工具':  { base:'🔧', label:'工具' },
+  },
+
+  // ── State → emoji overlay ─────────────────────────────────────
+  STATE_EMOJI: {
+    idle:       null,
+    surprised:  '❗',
+    eating:     '🍖',
+    drinking:   '🍺',
+    casting:    '✨',
+    fighting:   '💥',
+    look_left:  '👈',
+    spit_drink: '💦',
+    overturn:   '💫',
+    overturned: '💫',
+    shatter:    '💥',
+    broken:     '💔',
+    push:       '💨',
+    open:       '🔓',
+    closed:     '🔒',
+    empty:      '🫗',
+    lit:        '🔥',
+    extinguished:'💨',
+  },
+
+  // ── Init ──────────────────────────────────────────────────────
+  async init() {
+    this.container = document.getElementById('scene-container');
+    if (!this.container) {
+      this.container = document.createElement('div');
+      this.container.id = 'scene-container';
+      document.body.prepend(this.container);
+    }
+    this.container.style.cssText += ';will-change:transform;';
+    this._injectStyles();
+    this._buildDOMStructure();
+    this._initCanvas();
+    this._initParticlePool();
+    this._loadAllAssets();
+    const { loadLibrary } = await import("../../shared/js/asset-library.mjs");
+    await loadLibrary(this);
+    this._renderDefaultScene();
+    this.startLoop();
+    const svgCount = Object.keys(this._svgCache).length;
+    console.log(`[HybridRenderer] ${this.loadedCount} assets (${svgCount} SVG + ${this.loadedCount - svgCount} emoji-only) | Grid: ${this.GRID_COLS}×${this.GRID_ROWS}`);
+  },
+
+  // ── DOM structure with parallax layers ────────────────────────
+  _buildDOMStructure() {
+    this.container.innerHTML = '';
+    this._layers = {};
+
+    const lc = document.createElement('div');
+    lc.className = 'scene-camera';
+    lc.style.cssText = 'position:absolute;inset:0;transform-origin:center center;will-change:transform;';
+    this.container.appendChild(lc);
+    this._cameraContainer = lc;
+
+    const layers = [
+      'parallax-far', 'parallax-mid', 'parallax-near',
+      'scene-background', 'scene-objects', 'scene-characters', 'scene-effects'
+    ];
+    for (const name of layers) {
+      const div = document.createElement('div');
+      div.className = `scene-layer ${name}`;
+      lc.appendChild(div);
+      this._layers[name] = div;
+    }
+  },
+
+  // ── Canvas particle overlay ───────────────────────────────────
+  _initCanvas() {
+    this._canvas = document.createElement('canvas');
+    this._canvas.className = 'particle-canvas';
+    this._canvas.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:40;width:100%;height:100%;';
+    this._ctx = this._canvas.getContext('2d');
+    this.container.appendChild(this._canvas);
+    this._resizeCanvas();
+    window.addEventListener('resize', () => this._resizeCanvas());
+  },
+
+  _resizeCanvas() {
+    if (!this._canvas) return;
+    const rect = this.container.getBoundingClientRect();
+    this._canvas.width = rect.width * devicePixelRatio;
+    this._canvas.height = rect.height * devicePixelRatio;
+    this._canvas.style.width = rect.width + 'px';
+    this._canvas.style.height = rect.height + 'px';
+    this._ctx = this._canvas.getContext('2d');
+    this._ctx.scale(devicePixelRatio, devicePixelRatio);
+  },
+
+  // ── Particle pool ──────────────────────────────────────────────
+  _initParticlePool() {
+    this._particlePool = [];
+    this._particleAlive = [];
+    for (let i = 0; i < this.POOL_SIZE; i++) {
+      this._particlePool.push(this._createParticle());
+    }
+  },
+
+  _createParticle() {
+    return { x:0, y:0, vx:0, vy:0, life:0, maxLife:0, size:0, color:'#fff', alpha:1, rotation:0, type:'dust', alive:false };
+  },
+
+  _getParticle() {
+    for (const p of this._particlePool) {
+      if (!p.alive) return p;
+    }
+    // Pool exhausted: reuse oldest alive particle
+    const p = this._particleAlive.shift();
+    if (p) p.alive = false;
+    return p || this._createParticle();
+  },
+
+  // ── Styles injection ──────────────────────────────────────────
+  _injectStyles() {
+    if (document.getElementById('hybrid-renderer-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'hybrid-renderer-styles';
+    style.textContent = `
+      #scene-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+      }
+      #scene-container .scene-camera {
+        position: absolute;
+        inset: 0;
+      }
+      .scene-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .parallax-far  { z-index: 1; will-change: transform; }
+      .parallax-mid  { z-index: 2; will-change: transform; }
+      .parallax-near { z-index: 3; will-change: transform; }
+      .scene-background { z-index: 4; }
+      .scene-objects   { z-index: 10; }
+      .scene-characters { z-index: 20; }
+      .scene-effects   { z-index: 30; }
+
+      .scene-bg {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        transition: opacity 0.6s ease;
+        overflow: hidden;
+      }
+      .scene-bg .bg-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .scene-bg .bg-svg svg {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .scene-bg .bg-emoji {
+        font-size: min(40vw, 40vh);
+        opacity: 0.15;
+        filter: blur(2px);
+        position: absolute;
+      }
+      .scene-bg .bg-label {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        font-size: 14px;
+        color: rgba(255,255,255,0.4);
+        letter-spacing: 2px;
+        z-index: 2;
+      }
+      .scene-bg .bg-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+      }
+
+      .scene-entity {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        pointer-events: auto;
+        cursor: default;
+        transition: left 0.8s cubic-bezier(.4,0,.2,1),
+                    top 0.8s cubic-bezier(.4,0,.2,1),
+                    opacity 0.4s ease,
+                    transform 0.3s ease;
+        transform: translate(-50%, -100%);
+        will-change: transform, opacity;
+      }
+      .scene-entity .entity-svg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: visible;
+      }
+      .scene-entity .entity-svg svg {
+        width: 100%;
+        height: 100%;
+      }
+      .scene-entity .entity-emoji {
+        line-height: 1;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        transition: transform 0.3s ease, filter 0.3s ease;
+      }
+      .scene-entity .entity-label {
+        font-size: 10px;
+        color: rgba(255,255,255,0.7);
+        margin-top: 2px;
+        white-space: nowrap;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      }
+      .scene-entity .state-overlay {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        font-size: 20px;
+        animation: overlayPop 0.4s ease;
+      }
+      .scene-entity.effect {
+        transform: translate(-50%, -50%);
+        transform-origin: center center;
+      }
+      .scene-entity.effect .entity-emoji {
+        animation: effectPulse 2s ease-in-out infinite;
+      }
+      .scene-entity.effect .entity-svg {
+        animation: effectPulse 2s ease-in-out infinite;
+      }
+      .scene-entity .entity-shadow {
+        width: 40px;
+        height: 12px;
+        background: radial-gradient(ellipse, rgba(0,0,0,0.4), transparent);
+        border-radius: 50%;
+        margin-top: 4px;
+      }
+
+      @keyframes fadeIn { from { opacity:0; transform:translate(-50%,-80%); } to { opacity:1; transform:translate(-50%,-100%); } }
+      @keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+      @keyframes walkIn { from { opacity:0; transform:translate(-200%,-100%); } to { opacity:1; transform:translate(-50%,-100%); } }
+      @keyframes walkInRight { from { opacity:0; transform:translate(100%,-100%); } to { opacity:1; transform:translate(-50%,-100%); } }
+      @keyframes shock { 0%,100%{transform:translate(-50%,-100%) scale(1)} 20%{transform:translate(-50%,-100%) scale(1.2) rotate(-5deg)} 40%{transform:translate(-50%,-100%) scale(1.1) rotate(5deg)} 60%{transform:translate(-50%,-100%) scale(1.05)} }
+      @keyframes fighting { 0%,100%{transform:translate(-50%,-100%)} 25%{transform:translate(calc(-50% + 4px),-100%)} 75%{transform:translate(calc(-50% - 4px),-100%)} }
+      @keyframes eating { 0%,100%{transform:translate(-50%,-100%)} 50%{transform:translate(-50%,calc(-100% + 5px))} }
+      @keyframes casting { 0%,100%{filter:brightness(1) drop-shadow(0 0 0 transparent)} 50%{filter:brightness(1.5) drop-shadow(0 0 20px #a78bfa)} }
+      @keyframes idle { 0%,100%{transform:translate(-50%,-100%) scale(1)} 50%{transform:translate(-50%,-100%) scale(1.02)} }
+      @keyframes effectPulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:0.8} 50%{transform:translate(-50%,-50%) scale(1.15);opacity:1} }
+      @keyframes overlayPop { 0%{transform:scale(0)} 60%{transform:scale(1.3)} 100%{transform:scale(1)} }
+
+      .anim-fadeIn { animation: fadeIn 0.5s ease forwards; }
+      .anim-fadeOut { animation: fadeOut 0.4s ease forwards; }
+      .anim-walkIn { animation: walkIn 0.8s ease-out forwards; }
+      .anim-walkInRight { animation: walkInRight 0.8s ease-out forwards; }
+      .anim-shock { animation: shock 0.6s ease-in-out; }
+      .anim-fighting { animation: fighting 0.3s ease-in-out infinite; }
+      .anim-eating { animation: eating 0.8s ease-in-out infinite; }
+      .anim-casting { animation: casting 1.2s ease-in-out infinite; }
+      .anim-idle { animation: idle 3s ease-in-out infinite; }
+      .anim-overturn {
+        animation: overturn 0.6s ease forwards;
+        transform-origin: left bottom;
+      }
+      @keyframes overturn {
+        0% { transform: translate(-50%, -100%) rotate(0deg); }
+        100% { transform: translate(-50%, -100%) rotate(90deg); opacity: 0.6; }
+      }
+      .anim-shatter { animation: shatter 0.5s ease forwards; }
+      @keyframes shatter {
+        0% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+        50% { transform: translate(-50%, -100%) scale(1.3); opacity: 0.8; }
+        100% { transform: translate(-50%, -100%) scale(0.5); opacity: 0; }
+      }
+
+      .particle {
+        position: absolute;
+        pointer-events: none;
+        font-size: 16px;
+        z-index: 40;
+        animation: particleFloat 2s ease-out forwards;
+      }
+      @keyframes particleFloat {
+        0% { opacity:1; transform: translate(0,0) scale(1); }
+        100% { opacity:0; transform: translate(var(--dx), var(--dy)) scale(0.3); }
+      }
+
+      .particle-canvas {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 40;
+      }
+
+      .screen-flash {
+        position: absolute;
+        inset: 0;
+        z-index: 50;
+        pointer-events: none;
+        transition: opacity 0.1s ease;
+      }
+      .vignette-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 45;
+        pointer-events: none;
+      }
+      .letterbox-overlay {
+        position: absolute;
+        left: 0;
+        right: 0;
+        z-index: 46;
+        pointer-events: none;
+      }
+      .letterbox-top { top: 0; }
+      .letterbox-bottom { bottom: 0; }
+
+      .grid-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 99;
+        pointer-events: none;
+      }
+
+      .light-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 25;
+        pointer-events: none;
+        mix-blend-mode: screen;
+      }
+
+      .weather-fog {
+        position: absolute;
+        inset: 0;
+        z-index: 35;
+        pointer-events: none;
+        opacity: 0.4;
+      }
+      .weather-fog-inner {
+        position: absolute;
+        inset: -20%;
+        background: radial-gradient(ellipse at 50% 50%, rgba(200,200,220,0.3), transparent 70%);
+        animation: fogDrift 20s ease-in-out infinite alternate;
+      }
+      @keyframes fogDrift {
+        0% { transform: translate(-5%, 0) scale(1); }
+        100% { transform: translate(5%, -2%) scale(1.1); }
+      }
+      .weather-layer {
+        z-index: 35;
+        pointer-events: none;
+      }
+
+      .composed-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+      }
+      .composed-base {
+        line-height: 1;
+        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+      }
+      .composed-overlay {
+        position: absolute;
+        line-height: 1;
+        pointer-events: none;
+        animation: overlayFloat 3s ease-in-out infinite;
+      }
+      .composed-ring {
+        animation: none;
+        transform: translate(-50%, -50%);
+      }
+      .composed-top {
+        animation: none;
+        transform: translate(-50%, -100%);
+      }
+      .composed-glow .composed-base {
+        filter: drop-shadow(0 0 15px currentColor) drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+      }
+      @keyframes overlayFloat {
+        0%,100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+    `;
+    document.head.appendChild(style);
+  },
+
+  // ── SVG loading ───────────────────────────────────────────────
+  _loadAllAssets() {
+    for (const [id, meta] of Object.entries(this.EMOJI_MAP)) {
+      this.assets[id] = meta.emoji;
+      this.assetMeta[id] = {
+        layer: meta.isEffect ? 'effect' : (['table','chest','torch','sword','potion','shield','bow','scroll','key','barrel'].includes(id) ? 'object' : (id.startsWith('bg-') ? 'background' : 'character')),
+        tags: [meta.label, id],
+        origin: 'center-bottom'
+      };
+      this.loadedCount++;
+    }
+  },
+
+  _renderDefaultScene() {
+    this.renderScene({ background: 'bg-village', characters: [], objects: [], effects: [] });
+  },
+
+  // ── Asset resolution ──────────────────────────────────────────
+  _resolveAsset(id) {
+    if (this.EMOJI_MAP[id]) {
+      return { ...this.assetMeta[id], emoji: this.EMOJI_MAP[id].emoji, known: true };
+    }
+    const emoji = this.KEYWORD_EMOJI[id] || this._guessEmoji(id);
+    const layer = this._guessLayer(id);
+    const unknown = emoji === '❓';
+    return { layer, emoji, tags: [id], origin: 'center-bottom', known: false, unknown };
+  },
+
+  _guessEmoji(id) {
+    const lower = id.toLowerCase();
+    if (this.KEYWORD_EMOJI[lower]) return this.KEYWORD_EMOJI[lower];
+    const parts = lower.split(/[-_]/);
+    for (const part of parts) {
+      if (this.KEYWORD_EMOJI[part]) return this.KEYWORD_EMOJI[part];
+    }
+    for (const [keyword, emoji] of Object.entries(this.KEYWORD_EMOJI)) {
+      if (lower.includes(keyword)) return emoji;
+    }
+    for (const part of parts) {
+      if (part.length > 3) {
+        for (const [keyword, emoji] of Object.entries(this.KEYWORD_EMOJI)) {
+          if (keyword.startsWith(part.substring(0, 4))) return emoji;
+        }
+      }
+    }
+    return '❓';
+  },
+
+  _guessLayer(id) {
+    const lower = id.toLowerCase();
+    if (lower.startsWith('bg-')) return 'background';
+    const parts = lower.split(/[-_]/);
+    const objWords = ['table','chest','torch','sword','potion','door','key','book','barrel','rope','chair','bed','candle','coin','gem','ring','crown','shield','bow','axe','hammer','wand','staff','dagger','food','bread','meat','apple','cheese','bone','map','scroll','lantern','mirror','bag','hat','mask','lantern','mushroom','poison'];
+    for (const w of objWords) { if (parts.includes(w) || lower.includes(w)) return 'object'; }
+    const fxWords = ['fire','fog','smoke','sparkle','rain','snow','glow','light','dark','magic','effect','aura','wind','dust','shadow','glow','danger','secret'];
+    for (const w of fxWords) { if (parts.includes(w) || lower.includes(w)) return 'effect'; }
+    return 'character';
+  },
+
+  // ── Grid coordinate conversion ────────────────────────────────
+  gridToPercent(gx, gy) {
+    const x = ((gx + 0.5) / this.GRID_COLS) * 100;
+    const y = ((gy + 0.5) / this.GRID_ROWS) * 100;
+    return { x, y };
+  },
+
+  percentToGrid(px, py) {
+    const gx = Math.max(0, Math.min(this.GRID_COLS - 1, Math.floor(px / 100 * this.GRID_COLS)));
+    const gy = Math.max(0, Math.min(this.GRID_ROWS - 1, Math.floor(py / 100 * this.GRID_ROWS)));
+    return { gx, gy };
+  },
+
+  snapToGrid(px, py) {
+    const { gx, gy } = this.percentToGrid(px, py);
+    return this.gridToPercent(gx, gy);
+  },
+
+  getGridCellSize() {
+    if (!this.container) return { w: 60, h: 60 };
+    const rect = this.container.getBoundingClientRect();
+    return {
+      w: rect.width / this.GRID_COLS,
+      h: rect.height / this.GRID_ROWS
+    };
+  },
+
+  showGrid(visible) {
+    this._showGrid = visible;
+    if (visible) {
+      this._renderGridOverlay();
+    } else if (this._gridOverlay) {
+      this._gridOverlay.remove();
+      this._gridOverlay = null;
+    }
+  },
+
+  _renderGridOverlay() {
+    if (this._gridOverlay) this._gridOverlay.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'grid-overlay';
+    overlay.style.cssText = 'position:absolute;inset:0;z-index:99;pointer-events:none;';
+    for (let i = 1; i < this.GRID_COLS; i++) {
+      const line = document.createElement('div');
+      const pct = (i / this.GRID_COLS * 100);
+      line.style.cssText = `position:absolute;left:${pct}%;top:0;width:1px;height:100%;background:rgba(255,255,255,0.15);`;
+      overlay.appendChild(line);
+    }
+    for (let i = 1; i < this.GRID_ROWS; i++) {
+      const line = document.createElement('div');
+      const pct = (i / this.GRID_ROWS * 100);
+      line.style.cssText = `position:absolute;top:${pct}%;left:0;height:1px;width:100%;background:rgba(255,255,255,0.15);`;
+      overlay.appendChild(line);
+    }
+    for (let gx = 0; gx < this.GRID_COLS; gx++) {
+      for (let gy = 0; gy < this.GRID_ROWS; gy++) {
+        const { x, y } = this.gridToPercent(gx, gy);
+        const label = document.createElement('span');
+        label.textContent = `${gx},${gy}`;
+        label.style.cssText = `position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-50%);font-size:8px;color:rgba(255,255,255,0.25);font-family:monospace;`;
+        overlay.appendChild(label);
+      }
+    }
+    this.container.appendChild(overlay);
+    this._gridOverlay = overlay;
+  },
+
+  _composeEntity(id) {
+    const lower = id.toLowerCase().replace(/[-_]/g, ' ');
+    const parts = lower.split(/\s+/);
+
+    // 1. Check boss presets (gem-serpent, fire-dragon, etc.)
+    for (const [key, preset] of Object.entries(this.COMPOSITION_PRESETS)) {
+      if (lower.includes(key) || key.split('-').every(p => parts.includes(p))) {
+        return { ...preset, isComposition: true };
+      }
+    }
+
+    // 2. Check semantic compositions (well, fountain, altar, etc.)
+    //    Try exact match first, then partial match
+    if (this.SEMANTIC[lower]) {
+      return { ...this.SEMANTIC[lower], isComposition: true };
+    }
+    for (const part of parts) {
+      if (this.SEMANTIC[part]) {
+        return { ...this.SEMANTIC[part], isComposition: true };
+      }
+    }
+    // Also check Chinese: the raw id might be Chinese
+    const rawLower = id.toLowerCase();
+    if (this.SEMANTIC[rawLower]) {
+      return { ...this.SEMANTIC[rawLower], isComposition: true };
+    }
+
+    // 3. Build from keywords + modifiers
+    let base = '❓';
+    let scale = 1;
+    let filters = [];
+    let overlays = [];
+    let shadow = false;
+    let glow = false;
+    let label = id;
+
+    for (const part of parts) {
+      if (this.KEYWORD_EMOJI[part]) { base = this.KEYWORD_EMOJI[part]; break; }
+    }
+    // Also try raw id for Chinese keywords
+    if (base === '❓' && this.KEYWORD_EMOJI[id]) {
+      base = this.KEYWORD_EMOJI[id];
+    }
+
+    for (const part of parts) {
+      const mod = this.COMPOSITION_MODS[part];
+      if (!mod) continue;
+      if (mod.scale) scale *= mod.scale;
+      if (mod.filter) filters.push(mod.filter);
+      if (mod.overlays) overlays.push(...mod.overlays);
+      if (mod.shadow) shadow = true;
+      if (mod.glow) glow = true;
+    }
+
+    return { base, scale, filter: filters.join(' '), overlays, shadow, glow, isComposition: true, label };
+  },
+
+  // ── Scene rendering ──────────────────────────────────────────
+  renderScene(sceneData) {
+    if (!this.container) return;
+    if (this.currentScene === sceneData) return;
+    const { background, characters = [], objects = [], effects = [] } = sceneData;
+    this.currentScene = sceneData;
+
+    const bgLayer = this._layers['scene-background'];
+    bgLayer.innerHTML = '';
+    this._renderBackground(background);
+
+    const objLayer = this._layers['scene-objects'];
+    const charLayer = this._layers['scene-characters'];
+    const fxLayer = this._layers['scene-effects'];
+    objLayer.innerHTML = '';
+    charLayer.innerHTML = '';
+    fxLayer.innerHTML = '';
+
+    for (const obj of objects) this._renderEntity(obj, objLayer, 'object');
+    for (const char of characters) this._renderEntity(char, charLayer, 'character');
+    for (const fx of effects) this._renderEntity(fx, fxLayer, 'effect');
+
+    this._updateParallax();
+    EventBus.emit('scene:rendered', sceneData);
+  },
+
+  _renderBackground(bgId) {
+    const bg = this.EMOJI_MAP[bgId];
+    const svg = this._svgCache[bgId] || this._svgCache[this._svgAliases?.get(bgId)];
+    const hasSvg = Boolean(svg);
+    const label = bg?.label || bgId;
+    const bgLayer = this._layers['scene-background'];
+
+    const div = document.createElement('div');
+    div.className = 'scene-bg';
+
+    if (hasSvg) {
+      const colors = bg?.gradient || ['#1a1a2e','#16213e','#0f3460'];
+      div.style.background = `linear-gradient(180deg, ${colors.join(', ')})`;
+      div.innerHTML = `
+        <div class="bg-grid"></div>
+        <div class="bg-svg">${svg}</div>
+        <span class="bg-label">${label}</span>
+      `;
+    } else if (bg) {
+      const colors = bg.gradient || ['#1a1a2e','#16213e','#0f3460'];
+      div.style.background = `linear-gradient(180deg, ${colors.join(', ')})`;
+      div.innerHTML = `
+        <div class="bg-grid"></div>
+        <span class="bg-emoji">${bg.emoji}</span>
+        <span class="bg-label">${label}</span>
+      `;
+    } else {
+      div.style.background = 'linear-gradient(180deg, #0a0a1a, #1a1a2e)';
+      div.innerHTML = `<span class="bg-label">${bgId}</span>`;
+    }
+    bgLayer.appendChild(div);
+  },
+
+  // ── Entity rendering ──────────────────────────────────────────
+  _renderEntity(data, layer, type) {
+    const id = data.id;
+    const resolved = this._resolveAsset(id);
+    if (!resolved) return;
+
+    const svg = this._svgCache[id] || this._svgCache[this._svgAliases?.get(id)];
+    const hasSvg = Boolean(svg);
+    const meta = this.EMOJI_MAP[id];
+    const state = data.state || this.characterStates[id] || 'idle';
+
+    const composition = (!hasSvg && resolved.unknown) ? this._composeEntity(id) : null;
+
+    let emoji = resolved.emoji;
+    if (meta?.states && meta.states[state]) {
+      emoji = meta.states[state];
+    }
+
+    const el = document.createElement('div');
+    el.className = `scene-entity ${type}`;
+    el.dataset.id = id;
+    const rawX = data.x ?? 50;
+    const rawY = data.y ?? (type === 'effect' ? 40 : 60);
+    const snapped = (type === 'effect') ? { x: rawX, y: rawY } : this.snapToGrid(rawX, rawY);
+    el.style.left = snapped.x + '%';
+    el.style.top = snapped.y + '%';
+
+    const layerSize = this.LAYER_SIZES[type] || this.LAYER_SIZES.character;
+    const scale = data.scale || 1;
+
+    if (composition) {
+      const compScale = composition.scale || 1;
+      const compFilter = composition.filter || '';
+      const finalScale = scale * compScale;
+      const cell = this.getGridCellSize();
+      const baseFontSize = Math.round(Math.min(cell.w, cell.h) * 0.7 * finalScale);
+      const fontSize = Math.max(24, Math.min(120, baseFontSize));
+      el.innerHTML = `<div class="composed-wrapper${composition.glow ? ' composed-glow' : ''}" style="transform:scale(${finalScale});filter:${compFilter}">
+        <span class="composed-base" style="font-size:${fontSize}px">${composition.base}</span>
+      </div>
+      <div class="entity-shadow" style="width:${Math.round(cell.w * (composition.shadow ? 0.7 : 0.35))}px;height:${Math.round(cell.h * (composition.shadow ? 0.15 : 0.08))}px"></div>
+      <span class="entity-label">${composition.label || id}</span>`;
+
+      const wrapper = el.querySelector('.composed-wrapper');
+      const baseSize = Math.min(cell.w, cell.h) * 0.8;
+
+      // Render ring items (tight circle around base, e.g. stones around a well)
+      if (composition.ring && composition.ring.length > 0) {
+        const ringRadius = baseSize * 0.55;
+        composition.ring.forEach((emoji, i) => {
+          const angle = (i / composition.ring.length) * Math.PI * 2 - Math.PI / 2;
+          const span = document.createElement('span');
+          span.className = 'composed-overlay composed-ring';
+          const sz = Math.round(baseSize * 0.3);
+          span.style.cssText = `left:${Math.cos(angle)*ringRadius}px;top:${Math.sin(angle)*ringRadius}px;font-size:${sz}px;opacity:0.9`;
+          span.textContent = emoji;
+          wrapper.appendChild(span);
+        });
+      }
+
+      // Render top items (positioned above the base)
+      if (composition.top && composition.top.length > 0) {
+        composition.top.forEach((emoji, i) => {
+          const span = document.createElement('span');
+          span.className = 'composed-overlay composed-top';
+          const sz = Math.round(baseSize * 0.35);
+          const xOff = (i - (composition.top.length - 1) / 2) * sz * 0.8;
+          span.style.cssText = `left:${xOff}px;top:${-baseSize*0.45}px;font-size:${sz}px;opacity:0.85`;
+          span.textContent = emoji;
+          wrapper.appendChild(span);
+        });
+      }
+
+      // Render free overlays (scattered around, e.g. sparkles)
+      if (composition.overlays && composition.overlays.length > 0) {
+        const overlayPositions = composition.overlays.map((ov, i) => {
+          const angle = (i / composition.overlays.length) * Math.PI * 2 - Math.PI / 2;
+          const dist = baseSize * (0.5 + Math.random() * 0.2);
+          return { emoji: ov, x: Math.cos(angle) * dist, y: Math.sin(angle) * dist };
+        });
+        for (const pos of overlayPositions) {
+          const span = document.createElement('span');
+          span.className = 'composed-overlay';
+          const ovSize = Math.round(baseSize * 0.3 + Math.random() * baseSize * 0.1);
+          span.style.cssText = `left:${pos.x}px;top:${pos.y}px;font-size:${ovSize}px;opacity:${0.5 + Math.random() * 0.3}`;
+          span.textContent = pos.emoji;
+          wrapper.appendChild(span);
+        }
+      }
+    } else if (hasSvg) {
+      const w = Math.round(layerSize.w * scale);
+      const h = Math.round(layerSize.h * scale);
+      el.innerHTML = `
+        <div class="entity-svg" style="width:${w}px;height:${h}px">${svg}</div>
+        ${type !== 'effect' ? '<div class="entity-shadow"></div>' : ''}
+        ${type !== 'effect' ? `<span class="entity-label">${resolved.tags?.[0] || id}</span>` : ''}
+      `;
+    } else {
+      const fontSize = Math.round(layerSize.emoji * scale);
+      el.innerHTML = `
+        <span class="entity-emoji" style="font-size:${fontSize}px">${emoji}</span>
+        ${type !== 'effect' ? '<div class="entity-shadow"></div>' : ''}
+        ${type !== 'effect' ? `<span class="entity-label">${resolved.tags?.[0] || id}</span>` : ''}
+      `;
+    }
+
+    if (data.animation) el.classList.add(`anim-${data.animation}`);
+
+    if (data.fromX !== undefined) {
+      el.style.left = data.fromX + '%';
+      el.style.transition = `left ${data.duration || 800}ms cubic-bezier(.4,0,.2,1)`;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          el.style.left = (data.x || 50) + '%';
+        });
+      });
+      setTimeout(() => { el.style.transition = ''; }, (data.duration || 800) + 50);
+    }
+
+    layer.appendChild(el);
+
+    if (type === 'character') {
+      this.characterStates[id] = state;
+    }
+
+    if (type === 'effect' || state === 'casting') {
+      this._spawnParticles(el, id);
+    }
+
+    // Auto-register light for fire/torch
+    if (id === 'fire' || id === 'torch') {
+      this.addLight('light-' + id, data.x || 50, data.y || 60, 200, '#ff8800', 0.6);
+      if (!this._entityLightMap) this._entityLightMap = {};
+      this._entityLightMap[id] = 'light-' + id;
+    }
+  },
+
+  // ── Dynamic assets (identical API) ────────────────────────────
+  addAsset(assetId, options = {}) {
+    if (!this.container) return;
+    const resolved = this._resolveAsset(assetId);
+    if (!resolved) return;
+    if (options.gx !== undefined || options.gy !== undefined) {
+      const { x, y } = this.gridToPercent(
+        options.gx ?? Math.floor(this.GRID_COLS / 2),
+        options.gy ?? Math.floor(this.GRID_ROWS * 0.6)
+      );
+      options.x = x;
+      options.y = y;
+    }
+    const type = resolved.layer === 'effect' ? 'effect' : (resolved.layer === 'object' ? 'object' : 'character');
+    const layerClass = type === 'effect' ? 'scene-effects' : (type === 'object' ? 'scene-objects' : 'scene-characters');
+    const layer = this._layers[layerClass] || this._createLayer(layerClass);
+    this._renderEntity({ id: assetId, ...options }, layer, type);
+    EventBus.emit('asset:added', { id: assetId, ...options });
+  },
+
+  removeAsset(assetId, animation = 'fadeOut') {
+    if (!this.container) return;
+    const els = this.container.querySelectorAll(`[data-id="${assetId}"]`);
+    if (els.length === 0) return;
+    delete this.characterStates[assetId];
+
+    // Auto-remove light
+    if (this._entityLightMap && this._entityLightMap[assetId]) {
+      this.removeLight(this._entityLightMap[assetId]);
+      delete this._entityLightMap[assetId];
+    }
+
+    els.forEach(el => {
+      el.className = el.className.replace(/anim-\w+/g, '').trim();
+      el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translate(-50%, -100%) scale(0.5)';
+      setTimeout(() => el.remove(), 450);
+    });
+    EventBus.emit('asset:removed', { id: assetId, count: els.length });
+  },
+
+  _entityLightMap: {},
+
+  updateAsset(assetId, options = {}) {
+    if (!this.container) return;
+    const el = this.container.querySelector(`[data-id="${assetId}"]`);
+    if (!el) return;
+    if (options.x !== undefined) el.style.left = options.x + '%';
+    if (options.y !== undefined) el.style.top = options.y + '%';
+    if (options.scale !== undefined) {
+      const svgWrap = el.querySelector('.entity-svg');
+      const emojiEl = el.querySelector('.entity-emoji');
+      const type = el.classList.contains('effect') ? 'effect' : (el.classList.contains('object') ? 'object' : 'character');
+      const layerSize = this.LAYER_SIZES[type] || this.LAYER_SIZES.character;
+      if (svgWrap) {
+        svgWrap.style.width = Math.round(layerSize.w * options.scale) + 'px';
+        svgWrap.style.height = Math.round(layerSize.h * options.scale) + 'px';
+      }
+      if (emojiEl) emojiEl.style.fontSize = Math.round(layerSize.emoji * options.scale) + 'px';
+    }
+    if (options.state !== undefined) {
+      this._updateEntityState(el, assetId, options.state);
+    }
+    if (options.animation) {
+      el.classList.add(`anim-${options.animation}`);
+      el.addEventListener('animationend', () => el.classList.remove(`anim-${options.animation}`), { once: true });
+    }
+  },
+
+  _updateEntityState(el, assetId, state) {
+    const meta = this.EMOJI_MAP[assetId];
+    if (!meta) return;
+    const prevState = this.characterStates[assetId] || 'idle';
+    this.characterStates[assetId] = state;
+    const emojiEl = el.querySelector('.entity-emoji');
+    if (emojiEl && meta.states) {
+      emojiEl.textContent = meta.states[state] || meta.emoji;
+    }
+    el.classList.remove(`state-${prevState}`, `anim-${prevState}`);
+    const oldOverlay = el.querySelector('.state-overlay');
+    if (oldOverlay) oldOverlay.remove();
+    const animMap = {
+      surprised: 'shock', fighting: 'fighting', eating: 'eating',
+      casting: 'casting', idle: 'idle',
+      overturn: 'overturn', overturned: 'overturn',
+      shatter: 'shatter', broken: 'shatter',
+      slide: 'walkIn', push: 'walkIn',
+    };
+    if (animMap[state]) el.classList.add(`anim-${animMap[state]}`);
+    const overlayEmoji = this.STATE_EMOJI[state];
+    if (overlayEmoji) {
+      const overlay = document.createElement('span');
+      overlay.className = 'state-overlay';
+      overlay.textContent = overlayEmoji;
+      el.appendChild(overlay);
+    }
+    EventBus.emit('character:state', { id: assetId, state, prevState });
+  },
+
+  setCharacterState(assetId, state) {
+    const el = this.container?.querySelector(`[data-id="${assetId}"]`);
+    if (!el) return;
+    this._updateEntityState(el, assetId, state);
+  },
+
+  getCharacterState(assetId) {
+    return this.characterStates[assetId] || 'idle';
+  },
+
+  addReaction(assetId, state, delay = 2000, revertTo = 'idle') {
+    if (this._animationTimers[assetId]) clearTimeout(this._animationTimers[assetId]);
+    this.setCharacterState(assetId, state);
+    this._animationTimers[assetId] = setTimeout(() => {
+      this.setCharacterState(assetId, revertTo);
+      delete this._animationTimers[assetId];
+    }, delay);
+  },
+
+  addReactionChain(reactions) {
+    if (!Array.isArray(reactions)) return;
+    for (const r of reactions) {
+      setTimeout(() => {
+        this.addReaction(r.id, r.state, r.duration || 2000, r.revertTo || 'idle');
+      }, r.startDelay || 0);
     }
   },
 

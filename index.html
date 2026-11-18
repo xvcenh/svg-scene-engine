@@ -207,6 +207,9 @@
       gap: 6px;
     }
     .tmpl-card {
+      color: inherit;
+      font: inherit;
+      text-align: left;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -551,18 +554,18 @@
   <script>
     // ── Templates ──
     const TEMPLATES = [
-      { icon: '🍺', name: '酒馆之夜', desc: '吟游诗人弹奏，商人饮酒', text: '酒馆里，一位吟游诗人在弹奏，角落里商人在喝酒，壁炉的火光映在墙上' },
-      { icon: '🌲', name: '森林奇遇', desc: '战士与马，林间小路', text: '森林入口，一个战士牵着马站在路边，远处有几只绵羊在吃草' },
-      { icon: '🏰', name: '城堡集市', desc: '热闹集市，城堡远景', text: '热闹的集市上，商人和卫兵在交谈，远处矗立着一座宏伟的城堡' },
-      { icon: '🔥', name: '洞穴战斗', desc: '法师施法，火焰四起', text: '幽暗洞穴中，法师举起法杖施法，周围燃起熊熊火焰，战士拔剑迎敌' },
-      { icon: '🐉', name: '龙穴探险', desc: '面对巨龙，勇士集结', text: '火山洞穴深处，一条巨龙盘踞在宝藏上，战士和弓箭手小心翼翼地靠近' },
-      { icon: '⛪', name: '大教堂', desc: '神圣殿堂，牧师祈祷', text: '宏伟的大教堂内，牧师在圣坛前祈祷，阳光透过彩色玻璃窗洒下' },
-      { icon: '🌙', name: '墓地之夜', desc: '骷髅苏醒，亡灵涌出', text: '月光下的墓地，骷髅从地下爬出，远处的墓碑间弥漫着诡异的雾气' },
-      { icon: '🏖️', name: '海滩营地', desc: '篝火旁的冒险者', text: '夕阳下的海滩，冒险者围着篝火休息，远处海面上停泊着一艘帆船' },
-      { icon: '📚', name: '法师图书馆', desc: '古老书架，魔法研究', text: '古老的图书馆里，法师正在翻阅魔法卷轴，书架上摆满了发光的药水瓶' },
-      { icon: '❄️', name: '雪山之巅', desc: '暴风雪中的旅人', text: '雪山之巅，暴风雪中一个旅人艰难前行，远处有一座被雪覆盖的小屋' },
-      { icon: '🏺', name: '铁匠铺', desc: '锻造武器，火星四溅', text: '铁匠铺里，铁匠正在铁砧旁锻造一把宝剑，火星四溅，墙上挂满了武器' },
-      { icon: '🌊', name: '海底世界', desc: '深海探险，奇异生物', text: '深海之中，探险者被奇异的水母和发光的鱼群包围，远处有一座沉没的古城' },
+      { preview: ["bg-tavern", "bard", "merchant"], icon: '🍺', name: '酒馆之夜', desc: '吟游诗人弹奏，商人饮酒', text: '酒馆里，一位吟游诗人在弹奏，角落里商人在喝酒，壁炉的火光映在墙上' },
+      { preview: ["bg-forest", "warrior", "animal-horse"], icon: '🌲', name: '森林奇遇', desc: '战士与马，林间小路', text: '森林入口，一个战士牵着马站在路边，远处有几只绵羊在吃草' },
+      { preview: ["bg-market", "merchant", "guard"], icon: '🏰', name: '城堡集市', desc: '热闹集市，城堡远景', text: '热闹的集市上，商人和卫兵在交谈，远处矗立着一座宏伟的城堡' },
+      { preview: ["bg-cave", "mage", "warrior"], icon: '🔥', name: '洞穴战斗', desc: '法师施法，火焰四起', text: '幽暗洞穴中，法师举起法杖施法，周围燃起熊熊火焰，战士拔剑迎敌' },
+      { preview: ["bg-volcano", "dragon", "warrior"], icon: '🐉', name: '龙穴探险', desc: '面对巨龙，勇士集结', text: '火山洞穴深处，一条巨龙盘踞在宝藏上，战士和弓箭手小心翼翼地靠近' },
+      { preview: ["bg-cathedral", "healer", "villager"], icon: '⛪', name: '大教堂', desc: '神圣殿堂，牧师祈祷', text: '宏伟的大教堂内，牧师在圣坛前祈祷，阳光透过彩色玻璃窗洒下' },
+      { preview: ["bg-graveyard", "skeleton", "rogue"], icon: '🌙', name: '墓地之夜', desc: '骷髅苏醒，亡灵涌出', text: '月光下的墓地，骷髅从地下爬出，远处的墓碑间弥漫着诡异的雾气' },
+      { preview: ["bg-beach", "warrior", "bard"], icon: '🏖️', name: '海滩营地', desc: '篝火旁的冒险者', text: '夕阳下的海滩，冒险者围着篝火休息，远处海面上停泊着一艘帆船' },
+      { preview: ["bg-library", "mage", "healer"], icon: '📚', name: '法师图书馆', desc: '古老书架，魔法研究', text: '古老的图书馆里，法师正在翻阅魔法卷轴，书架上摆满了发光的药水瓶' },
+      { preview: ["bg-snow-mountain", "rogue", "warrior"], icon: '❄️', name: '雪山之巅', desc: '暴风雪中的旅人', text: '雪山之巅，暴风雪中一个旅人艰难前行，远处有一座被雪覆盖的小屋' },
+      { preview: ["bg-workshop", "character-blacksmith", "merchant"], icon: '🏺', name: '铁匠铺', desc: '锻造武器，火星四溅', text: '铁匠铺里，铁匠正在铁砧旁锻造一把宝剑，火星四溅，墙上挂满了武器' },
+      { preview: ["bg-underwater", "mage", "villager"], icon: '🌊', name: '海底世界', desc: '深海探险，奇异生物', text: '深海之中，探险者被奇异的水母和发光的鱼群包围，远处有一座沉没的古城' },
     ];
 
     let templatesExpanded = false;
@@ -571,13 +574,13 @@
       const grid = document.getElementById('templates-grid');
       const show = templatesExpanded ? TEMPLATES : TEMPLATES.slice(0, 6);
       grid.innerHTML = show.map(t =>
-        `<div class="tmpl-card" onclick="quickScene('${t.text.replace(/'/g, "\\'")}')" title="${t.text}">
+        `<button type="button" class="tmpl-card" onclick="quickScene('${t.text.replace(/'/g, "\\'")}')" title="${t.text}">
           <div class="tmpl-icon">${t.icon}</div>
           <div class="tmpl-info">
             <div class="tmpl-name">${t.name}</div>
             <div class="tmpl-desc">${t.desc}</div>
           </div>
-        </div>`
+        </button>`
       ).join('');
       document.getElementById('tmpl-toggle-text').textContent = templatesExpanded ? '收起' : '展开更多';
       document.getElementById('tmpl-toggle-arrow').textContent = templatesExpanded ? '▲' : '▼';
@@ -604,7 +607,7 @@
       const ready = LLMClient.isReady();
       statusEl.textContent = ready
         ? `${SVGRenderer.loadedCount} 素材就绪`
-        : '请先配置 LLM ⚙️';
+        : '本地模板已就绪 · 自由描述需配置 LLM';
       statusEl.className = 'status-text' + (ready ? ' ready' : '');
       dotEl.className = 'status-dot' + (ready ? ' ready' : '');
 
@@ -679,6 +682,16 @@
     }
 
     function quickScene(text) {
+      const template = TEMPLATES.find(item => item.text === text);
+      if (!LLMClient.isReady() && template) {
+        const [background, left, right] = template.preview;
+        Engine.applyScene({init_scene: {
+          background, characters: [{id:left, x:32, y:72}, {id:right, x:68, y:72}]
+        }});
+        document.getElementById("scene-state").textContent = template.name;
+        addMessage("system", "本地场景模板 · " + template.name);
+        return;
+      }
       document.getElementById('chat-input').value = text;
       sendMessage();
     }
@@ -723,7 +736,7 @@
       closeSettings();
       const ready = LLMClient.isReady();
       document.getElementById('engine-status').textContent = ready
-        ? `${SVGRenderer.loadedCount} 素材就绪` : '请先配置 LLM ⚙️';
+        ? `${SVGRenderer.loadedCount} 素材就绪` : '本地模板已就绪 · 自由描述需配置 LLM';
       document.getElementById('engine-status').className = 'status-text' + (ready ? ' ready' : '');
       document.getElementById('status-dot').className = 'status-dot' + (ready ? ' ready' : '');
     }
@@ -737,7 +750,7 @@
       const catalog = SceneDSL.getAssetCatalog();
       const panel = document.getElementById('catalog-panel');
       let html = '';
-      const labels = { backgrounds:'背景', characters:'角色', creatures:'生物', objects:'物品', effects:'特效', states:'状态' };
+      const labels = { backgrounds:'背景', characters:'角色', creatures:'生物', objects:'物品', effects:'特效', items:'道具', ui:'界面', states:'状态' };
       for (const [cat, items] of Object.entries(catalog)) {
         html += `<h3>${labels[cat] || cat}</h3>`;
         for (const item of items) {
@@ -756,7 +769,7 @@
     }
 
     // ── Start ──
-    init();
+    init().catch(error => { document.getElementById("engine-status").textContent = "初始化失败，请刷新后重试"; console.error(error); });
   </script>
 </body>
 </html>

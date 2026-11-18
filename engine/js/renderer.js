@@ -134,121 +134,14 @@ const SVGRenderer = {
     }
     this._injectStyles();
     this._loadAllAssets();
-    await this._loadAssetLibrary();
-    await this._loadSvgAssets();
+    const { loadLibrary } = await import("../../shared/js/asset-library.mjs");
+    await loadLibrary(this);
     this._renderDefaultScene();
     const svgCount = Object.keys(this._svgCache).length;
     console.log(`[HybridRenderer] ${this.loadedCount} assets (${svgCount} SVG + ${this.loadedCount - svgCount} emoji-only)`);
   },
 
   // ── SVG path builder (engine assets) ────────────────────────────
-  _buildSvgPath(id, layer) {
-    const dirs = {
-      background: 'assets/svg/backgrounds',
-      character: 'assets/svg/characters',
-      object: 'assets/svg/objects',
-      effect: 'assets/svg/effects',
-    };
-    const name = layer === 'background' ? id.replace(/^bg-/, '') : id;
-    return `${dirs[layer] || 'assets/svg/characters'}/${name}.svg`;
-  },
-
-  // ── SVG path builder (asset-library) ──────────────────────────
-  _buildLibraryPath(id, layer) {
-    // Library uses consistent directory names
-    const dirs = {
-      background: `${this._LIBRARY_BASE}/backgrounds`,
-      character:  `${this._LIBRARY_BASE}/characters`,
-      creature:   `${this._LIBRARY_BASE}/creatures`,
-      object:     `${this._LIBRARY_BASE}/objects`,
-      effect:     `${this._LIBRARY_BASE}/effects`,
-      item:       `${this._LIBRARY_BASE}/items`,
-    };
-    return `${dirs[layer] || dirs.character}/${id}.svg`;
-  },
-
-  // ── Fetch SVG files ──────────────────────────────────────────
-  async _loadSvgAssets() {
-    // Load engine's own SVGs first
-    const promises = [];
-    for (const [id, meta] of Object.entries(this.assetMeta)) {
-      const path = this._buildSvgPath(id, meta.layer);
-      promises.push(
-        fetch(path)
-          .then(r => r.ok ? r.text() : null)
-          .then(svg => { if (svg && svg.includes('<svg')) this._svgCache[id] = svg; })
-          .catch(() => {})
-      );
-    }
-    await Promise.all(promises);
-
-    // Then load library SVGs for registered assets
-    const libPromises = [];
-    for (const asset of this._libraryManifest) {
-      if (this._svgCache[asset.id]) continue; // already have engine SVG
-      const libLayer = asset.layer;
-      const path = this._buildLibraryPath(asset.id, libLayer);
-      libPromises.push(
-        fetch(path)
-          .then(r => r.ok ? r.text() : null)
-          .then(svg => { if (svg && svg.includes('<svg')) this._svgCache[asset.id] = svg; })
-          .catch(() => {})
-      );
-    }
-    await Promise.all(libPromises);
-  },
-
-  // ── Load asset-library manifest and register assets ──────────
-  async _loadAssetLibrary() {
-    try {
-      const resp = await fetch('assets/svg-asset-library/manifest.json');
-      if (!resp.ok) return;
-      const data = await resp.json();
-      this._libraryManifest = data.assets || [];
-
-      // Map library layer names to engine layer names
-      const layerMap = {
-        background: 'background',
-        character:  'character',
-        creature:   'character',   // creatures render as characters
-        object:     'object',
-        effect:     'effect',
-        item:       'object',      // items render as objects
-      };
-
-      for (const asset of this._libraryManifest) {
-        const engineLayer = layerMap[asset.layer] || 'character';
-        // Skip if already registered by engine's own EMOJI_MAP
-        if (this.assetMeta[asset.id]) continue;
-
-        // Register in assetMeta
-        this.assetMeta[asset.id] = {
-          layer: engineLayer,
-          tags: (asset.tags || '').split(',').concat([asset.id]),
-          origin: engineLayer === 'effect' ? 'center-center' : 'center-bottom',
-          source: 'library',
-        };
-
-        // Register in EMOJI_MAP with keyword-guessed emoji fallback
-        if (!this.EMOJI_MAP[asset.id]) {
-          const emoji = this.KEYWORD_EMOJI[asset.id] || this._guessEmoji(asset.id);
-          this.EMOJI_MAP[asset.id] = {
-            emoji: emoji,
-            label: asset.id.replace(/[-_]/g, ' '),
-          };
-          this.assets[asset.id] = emoji;
-        }
-
-        this.loadedCount++;
-      }
-
-      const svgDir = this._LIBRARY_BASE;
-      console.log(`[HybridRenderer] Asset library loaded: ${this._libraryManifest.length} assets registered`);
-    } catch (e) {
-      console.warn('[HybridRenderer] Failed to load asset library:', e);
-    }
-  },
-
   _injectStyles() {
     if (document.getElementById('hybrid-renderer-styles')) return;
     const style = document.createElement('style');
@@ -534,7 +427,8 @@ const SVGRenderer = {
 
   _renderBackground(bgId) {
     const bg = this.EMOJI_MAP[bgId];
-    const hasSvg = !!this._svgCache[bgId];
+    const svg = this._svgCache[bgId] || this._svgCache[this._svgAliases?.get(bgId)];
+    const hasSvg = Boolean(svg);
     const label = bg?.label || bgId;
 
     const div = document.createElement('div');
@@ -545,7 +439,7 @@ const SVGRenderer = {
       div.style.background = `linear-gradient(180deg, ${colors.join(', ')})`;
       div.innerHTML = `
         <div class="bg-grid"></div>
-        <div class="bg-svg">${this._svgCache[bgId]}</div>
+        <div class="bg-svg">${svg}</div>
         <span class="bg-label">${label}</span>
       `;
     } else if (bg) {
@@ -578,7 +472,8 @@ const SVGRenderer = {
     const resolved = this._resolveAsset(id);
     if (!resolved) return;
 
-    const hasSvg = !!this._svgCache[id];
+    const svg = this._svgCache[id] || this._svgCache[this._svgAliases?.get(id)];
+    const hasSvg = Boolean(svg);
     const meta = this.EMOJI_MAP[id];
     const state = data.state || this.characterStates[id] || 'idle';
 
@@ -601,7 +496,7 @@ const SVGRenderer = {
       const w = Math.round(layerSize.w * scale);
       const h = Math.round(layerSize.h * scale);
       el.innerHTML = `
-        <div class="entity-svg" style="width:${w}px;height:${h}px">${this._svgCache[id]}</div>
+        <div class="entity-svg" style="width:${w}px;height:${h}px">${svg}</div>
         ${type !== 'effect' ? '<div class="entity-shadow"></div>' : ''}
         ${type !== 'effect' ? `<span class="entity-label">${resolved.tags?.[0] || id}</span>` : ''}
       `;

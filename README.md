@@ -5,6 +5,8 @@ AI-driven SVG scene composition engine. Describe a scene in natural language, an
 [![GitHub Pages](https://img.shields.io/badge/Demo-GitHub%20Pages-blue)](https://xvcenh.github.io/svg-scene-engine/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+Try any of the twelve scene templates immediately. Free-form AI descriptions use your configured provider. For an existing checkout, run `git submodule update --init --recursive` before starting the local HTTP server.
+
 ## What It Does
 
 SVG Scene Engine takes natural language descriptions and converts them into structured scene commands that render layered SVG compositions:
@@ -19,7 +21,7 @@ User: "酒馆里，一位吟游诗人在弹奏，商人在喝酒"
 
 ## Features
 
-- **37 SVG assets**: 15 backgrounds, 14 characters, 5 objects, 3 effects
+- **200 cataloged SVGs** across seven layers in the pinned asset-library submodule
 - **Hybrid rendering**: SVG when available, emoji fallback for everything else
 - **Smart emoji sizing**: Characters 48px, objects 32px, effects 64px — matches visual weight
 - **Dynamic assets**: LLM can use any ID (dragon, wolf, tree...), auto-matched to emoji
@@ -35,12 +37,10 @@ User: "酒馆里，一位吟游诗人在弹奏，商人在喝酒"
 
 ```bash
 # Clone
-git clone https://github.com/xvcenh/svg-scene-engine.git
+git clone --recurse-submodules https://github.com/xvcenh/svg-scene-engine.git
 cd svg-scene-engine
 
-# Open in browser
-open index.html
-# Or serve locally
+# Serve the checkout over HTTP
 python3 -m http.server 8080
 ```
 
@@ -56,7 +56,8 @@ svg-scene-engine/
 ├── engine/
 │   └── js/
 │       ├── core.js         # Engine initialization & scene API
-│       ├── renderer.js     # Emoji-based rendering, layers, animations
+│       ├── renderer-enhanced.js # Interactive renderer, camera, particles and lights
+│       ├── renderer.js     # Basic SVG and emoji renderer
 │       ├── scene-manager.js # Scene DSL, diff, asset matching
 │       └── scene-dsl.js    # LLM instructions & scene examples
 ├── shared/
@@ -64,7 +65,7 @@ svg-scene-engine/
 │       ├── event-bus.js    # Decoupled event system
 │       └── llm-client.js   # LLM API client (OpenAI-compatible)
 ├── assets/
-│   └── svg/               # 37 SVG assets (preserved, renderer uses emoji)
+│   └── svg-asset-library/ # Pinned external catalog and SVGs
 │       ├── backgrounds/    # 15 background scenes
 │       ├── characters/     # 14 character sprites
 │       ├── objects/         # 5 interactive objects
@@ -118,7 +119,7 @@ The engine uses a JSON-based Scene Description Language:
 <script src="shared/js/event-bus.js"></script>
 <script src="shared/js/llm-client.js"></script>
 <script src="engine/js/scene-dsl.js"></script>
-<script src="engine/js/renderer.js"></script>
+<script src="engine/js/renderer-enhanced.js"></script>
 <script src="engine/js/scene-manager.js"></script>
 <script src="engine/js/core.js"></script>
 
@@ -155,13 +156,7 @@ EventBus.on('asset:added', (data) => console.log('Asset added:', data.id));
 
 ### Add Custom SVG Assets
 
-Add SVG files to `assets/svg/` and register them in `renderer.js`:
-
-```javascript
-{ id: 'my-asset', path: 'assets/svg/my-asset.svg', layer: 'character', tags: ['custom', 'new'] }
-```
-
-Then update `scene-dsl.js` to include the new asset in the LLM instructions.
+Add the SVG and an entry to `manifest.json` in [svg-asset-library](https://github.com/xvcenh/svg-asset-library). Update this repository’s pinned submodule revision. Both the renderer and the model’s asset catalog derive their entries from the same manifest.
 
 ### Custom Scene Commands
 
