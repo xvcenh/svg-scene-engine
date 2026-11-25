@@ -339,7 +339,8 @@
       align-items: center;
       justify-content: center;
     }
-    .overlay.active { display: flex; }
+    .overlay[open] { display: flex; border: 0; margin: auto; padding: 0; background: transparent; color: inherit; }
+    .overlay::backdrop { background: rgba(0,0,0,.64); }
     .modal {
       background: var(--bg-panel);
       border: 1px solid var(--border);
@@ -510,35 +511,35 @@
       <!-- Input -->
       <div class="chat-input-area">
         <div class="chat-input-row">
-          <textarea id="chat-input" rows="2" placeholder="描述你想要的场景..."></textarea>
-          <button id="send-btn" onclick="sendMessage()" title="发送 (Enter)">▶</button>
+          <textarea aria-label="场景描述" id="chat-input" rows="2" placeholder="描述你想要的场景..."></textarea>
+          <button id="send-btn" onclick="sendMessage()" aria-label="发送场景描述" title="发送 (Enter)">▶</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Settings -->
-  <div class="overlay" id="settings-overlay">
+  <dialog class="overlay" id="settings-overlay" aria-labelledby="settings-title">
     <div class="modal">
-      <h2>⚙️ LLM 设置</h2>
-      <label>API 端点</label>
+      <h2 id="settings-title">⚙️ LLM 设置</h2>
+      <label for="cfg-endpoint">API 端点</label>
       <input id="cfg-endpoint" placeholder="https://api.deepseek.com/v1">
       <div class="preset-row">
-        <span class="preset-chip" onclick="fillPreset('https://api.deepseek.com/v1','deepseek-chat')">DeepSeek</span>
-        <span class="preset-chip" onclick="fillPreset('https://api.openai.com/v1','gpt-4o-mini')">OpenAI</span>
-        <span class="preset-chip" onclick="fillPreset('https://api.moonshot.cn/v1','moonshot-v1-8k')">Moonshot</span>
-        <span class="preset-chip" onclick="fillPreset('http://localhost:1234/v1','local')">本地模型</span>
+        <button type="button" class="preset-chip" onclick="fillPreset('https://api.deepseek.com/v1','deepseek-chat')">DeepSeek</button>
+        <button type="button" class="preset-chip" onclick="fillPreset('https://api.openai.com/v1','gpt-4o-mini')">OpenAI</button>
+        <button type="button" class="preset-chip" onclick="fillPreset('https://api.moonshot.cn/v1','moonshot-v1-8k')">Moonshot</button>
+        <button type="button" class="preset-chip" onclick="fillPreset('http://localhost:1234/v1','local')">本地模型</button>
       </div>
-      <label>API Key</label>
+      <label for="cfg-apikey">API Key</label>
       <input id="cfg-apikey" type="password" placeholder="sk-...">
-      <label>模型</label>
+      <label for="cfg-model">模型</label>
       <input id="cfg-model" placeholder="deepseek-chat">
       <div class="btn-row">
         <button class="btn-cancel" onclick="closeSettings()">取消</button>
         <button class="btn-save" onclick="saveSettings()">保存</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
   <!-- Catalog -->
   <div class="catalog-panel" id="catalog-panel"></div>
@@ -617,7 +618,7 @@
       buildCatalog();
 
       document.getElementById('chat-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && e.keyCode !== 229) {
           e.preventDefault();
           sendMessage();
         }
@@ -721,10 +722,10 @@
       document.getElementById('cfg-endpoint').value = cfg.endpoint || '';
       document.getElementById('cfg-apikey').value = cfg.apiKey || '';
       document.getElementById('cfg-model').value = cfg.model || 'deepseek-chat';
-      document.getElementById('settings-overlay').classList.add('active');
+      document.getElementById('settings-overlay').showModal();
     }
     function closeSettings() {
-      document.getElementById('settings-overlay').classList.remove('active');
+      document.getElementById('settings-overlay').close();
     }
     function saveSettings() {
       LLMClient.configure({
